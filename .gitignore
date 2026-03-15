@@ -32,3 +32,6 @@ logs/
 .agents/
 .claude/
 .jbeval/
+
+# tests
+test/
