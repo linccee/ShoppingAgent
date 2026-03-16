@@ -17,6 +17,11 @@ def inject_stop_button_js():
     let origSubmit = null;
     let cleanupTimer = null;
 
+    function setChatInputActivity(chatInput, state) {
+        if (!chatInput) return;
+        chatInput.setAttribute("data-ag-activity", state);
+    }
+
     function hideNativeSubmit(button) {
         if (!button) return;
         if (button.dataset.agHidden === "true") return;
@@ -74,7 +79,10 @@ def inject_stop_button_js():
 
     function mountOverlay(chatInput) {
         overlay = parentDoc.getElementById("ag-custom-stop-btn");
-        if (overlay) return overlay;
+        if (overlay) {
+            setChatInputActivity(chatInput, "active");
+            return overlay;
+        }
 
         overlay = parentDoc.createElement("button");
         overlay.id = "ag-custom-stop-btn";
@@ -138,6 +146,7 @@ def inject_stop_button_js():
 
             const nativeStop = findNativeStopButton();
             if (nativeStop) {
+                setChatInputActivity(chatInput, "idle");
                 nativeStop.click();
                 cleanupTimer = window.setTimeout(() => {
                     const currentOverlay = parentDoc.getElementById("ag-custom-stop-btn");
@@ -154,6 +163,7 @@ def inject_stop_button_js():
         };
 
         chatInput.style.position = 'relative';
+        setChatInputActivity(chatInput, "active");
         chatInput.appendChild(overlay);
         return overlay;
     }
@@ -161,16 +171,18 @@ def inject_stop_button_js():
     const interval = setInterval(() => {
         const chatInput = parentDoc.querySelector('[data-testid="stChatInput"]');
         if (!chatInput) return;
-        
+
         origSubmit = chatInput.querySelector('[data-testid="stChatInputSubmitButton"]');
         if (origSubmit) {
-             hideNativeSubmit(origSubmit);
+            hideNativeSubmit(origSubmit);
         }
+        setChatInputActivity(chatInput, "active");
         mountOverlay(chatInput);
     }, 200);
 
     // Cleanup when component unmounts (generation finished / stopped)
     window.addEventListener('unload', () => {
+        const chatInput = parentDoc.querySelector('[data-testid="stChatInput"]');
         clearInterval(interval);
         if (cleanupTimer) {
             window.clearTimeout(cleanupTimer);
@@ -179,6 +191,7 @@ def inject_stop_button_js():
             overlay.parentNode.removeChild(overlay);
         }
         restoreNativeSubmit(origSubmit);
+        setChatInputActivity(chatInput, "idle");
     });
     </script>
     """, height=0)
@@ -196,21 +209,22 @@ def remove_stop_button_js():
     }
     const chatInput = parentDoc.querySelector('[data-testid="stChatInput"]');
     if (chatInput) {
+        chatInput.setAttribute("data-ag-activity", "idle");
         const origSubmit = chatInput.querySelector('[data-testid="stChatInputSubmitButton"]');
         if (origSubmit) {
-             origSubmit.style.display = origSubmit.dataset.agOrigDisplay || '';
-             origSubmit.style.visibility = origSubmit.dataset.agOrigVisibility || '';
-             origSubmit.style.pointerEvents = origSubmit.dataset.agOrigPointerEvents || '';
-             origSubmit.style.opacity = origSubmit.dataset.agOrigOpacity || '';
-             origSubmit.style.background = origSubmit.dataset.agOrigBackground || '';
-             origSubmit.style.boxShadow = origSubmit.dataset.agOrigBoxShadow || '';
-             delete origSubmit.dataset.agOrigDisplay;
-             delete origSubmit.dataset.agOrigVisibility;
-             delete origSubmit.dataset.agOrigPointerEvents;
-             delete origSubmit.dataset.agOrigOpacity;
-             delete origSubmit.dataset.agOrigBackground;
-             delete origSubmit.dataset.agOrigBoxShadow;
-             delete origSubmit.dataset.agHidden;
+            origSubmit.style.display = origSubmit.dataset.agOrigDisplay || '';
+            origSubmit.style.visibility = origSubmit.dataset.agOrigVisibility || '';
+            origSubmit.style.pointerEvents = origSubmit.dataset.agOrigPointerEvents || '';
+            origSubmit.style.opacity = origSubmit.dataset.agOrigOpacity || '';
+            origSubmit.style.background = origSubmit.dataset.agOrigBackground || '';
+            origSubmit.style.boxShadow = origSubmit.dataset.agOrigBoxShadow || '';
+            delete origSubmit.dataset.agOrigDisplay;
+            delete origSubmit.dataset.agOrigVisibility;
+            delete origSubmit.dataset.agOrigPointerEvents;
+            delete origSubmit.dataset.agOrigOpacity;
+            delete origSubmit.dataset.agOrigBackground;
+            delete origSubmit.dataset.agOrigBoxShadow;
+            delete origSubmit.dataset.agHidden;
         }
     }
     </script>

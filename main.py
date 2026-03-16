@@ -202,7 +202,10 @@ if user_input:
             # 去除光标光标并更新内容
             text_box.markdown(final_answer)
             assistant_msg["content"] = final_answer
-            
+
+            # 恢复输入框到空闲态，并移除自定义 Stop 按钮
+            remove_stop_button_js()
+
             # 立即保存到 MongoDB，以免关闭/停止后丢失数据
             # 由于这里在 finally 中，点击 Stop 也能触发状态落库
             save_session(
