@@ -58,6 +58,16 @@ def search_node(state: SharedState) -> dict:
         result = search_products.invoke(query)
         search_data = json.loads(result)
 
+        if search_data.get("success") is False:
+            error_message = search_data.get("error", "搜索工具执行失败")
+            steps[-1]["status"] = "error"
+            steps[-1]["error"] = error_message
+            return {
+                "workflow_status": "error",
+                "error_message": f"搜索失败: {error_message}",
+                "steps": steps,
+            }
+
         results = search_data.get("results", [])
         candidate_products = results[:5]  # 取前5个
 
@@ -289,12 +299,12 @@ def currency_node(state: SharedState) -> dict:
         if budget and user_currency and user_currency != "USD":
             result = currency_exchange.invoke({
                 "amount": str(budget),
-                "from_currency": user_currency,
-                "to_currency": "USD",
+                "base_code": user_currency,
+                "target_code": "USD",
             })
             data = json.loads(result)
             if data.get("success"):
-                converted_amount = data.get("converted_amount")
+                converted_amount = data.get("conversion_result")
 
         # 更新步骤为完成
         steps[-1]["status"] = "completed"
@@ -443,7 +453,7 @@ def _rank_products(
     Returns:
         推荐列表 (按排名排序)
     """
-    ranked: list[Recommendation] = []
+    scored_products: list[tuple[int, int, Recommendation]] = []
 
     for i, product in enumerate(candidates):
         # 匹配价格信息
@@ -478,19 +488,28 @@ def _rank_products(
             elif sentiment == "neutral":
                 score += 1
 
-        ranked.append({
-            "rank": i + 1,
-            "product": product,
-            "recommendation_reason": _generate_reason(price_info, review_info),
-            "price_range": _format_price(price_info),
-            "best_platform": price_info.get("platform", "未知") if price_info else "未知",
-            "purchase_link": price_info.get("url", product.get("url", "")) if price_info else "",
-        })
+        scored_products.append((
+            score,
+            i,
+            {
+                "rank": i + 1,
+                "product": product,
+                "recommendation_reason": _generate_reason(price_info, review_info),
+                "price_range": _format_price(price_info),
+                "best_platform": price_info.get("platform", "未知") if price_info else "未知",
+                "purchase_link": price_info.get("url", product.get("url", "")) if price_info else "",
+            },
+        ))
 
-    # 按评分排序
-    ranked.sort(key=lambda x: x["rank"], reverse=False)
+    # 按评分降序排序；同分时保持原搜索顺序稳定
+    scored_products.sort(key=lambda item: (-item[0], item[1]))
 
-    return ranked[:3]  # 返回前3个推荐
+    ranked: list[Recommendation] = []
+    for rank, (_, _, recommendation) in enumerate(scored_products[:3], start=1):
+        recommendation["rank"] = rank
+        ranked.append(recommendation)
+
+    return ranked
 
 
 def _generate_reason(price_info: dict | None, review_info: dict | None) -> str:
