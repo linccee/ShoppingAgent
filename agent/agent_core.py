@@ -89,8 +89,9 @@ def create_shopping_agent():
     from tools.price_tool import prices
     from tools.review_tool import analyze_reviews
     from tools.search_tool import search_products
+    from tools.tavily_tool import tavily_search, tavily_extract
 
-    tools = [search_products, prices, analyze_reviews, currency_exchange]
+    tools = [search_products, prices, analyze_reviews, currency_exchange, tavily_search, tavily_extract]
 
     # 3. 创建 LangGraph ReAct Agent，注入 MongoDBSaver 作为持久化后端
     #    MongoDBSaver 会在每次调用后自动把完整 messages state 保存进 MongoDB 数据库，
