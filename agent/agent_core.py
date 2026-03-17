@@ -84,6 +84,7 @@ def create_shopping_agent():
         stream_usage=True
     )
 
+
     # 2. 注册工具列表
     from tools.currency_exchange_tool import currency_exchange
     from tools.price_tool import prices
