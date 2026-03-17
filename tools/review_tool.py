@@ -62,6 +62,7 @@ def _fetch_amazon_reviews(asin: str) -> dict:
     reviews = []
     product_results = result.get("product_results", {})
     reviews_info = result.get("reviews_information", {})
+    reviews_summary = reviews_info.get("summary", {"text": "(获取评价总结失败，可能是没有此条目)"}).get("text")
 
     overall_rating = product_results.get("rating", "")
     reviews_count = product_results.get("reviews", 0)
@@ -85,6 +86,7 @@ def _fetch_amazon_reviews(asin: str) -> dict:
         "overall_rating": overall_rating,
         "reviews_count": reviews_count,
         "summary_text": summary_text,
+        "reviews_summary": reviews_summary,
         "reviews": reviews
     }
 
