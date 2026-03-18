@@ -1,4 +1,4 @@
-# 镜澜导购 · Mirror Curation
+# 镜澜导购 · Sales Agent
 
 > 智能多平台购物决策助手 — 连接 Google Shopping、Amazon 与 eBay，一轮对话完成比价、评论归纳与购买建议。
 
