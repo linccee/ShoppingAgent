@@ -4,6 +4,12 @@ import type { FormEvent } from 'react';
 import { Button } from '../common/Button';
 import styles from './ChatInput.module.css';
 
+const INPUT_HINTS = [
+  { label: '预算', text: '说清区间更容易收敛方案' },
+  { label: '场景', text: '通勤、办公、拍摄会明显改变推荐' },
+  { label: '对比', text: '可以直接点名两个型号或两个平台' },
+];
+
 interface ChatInputProps {
   isStreaming: boolean;
   isStopping: boolean;
@@ -13,6 +19,7 @@ interface ChatInputProps {
 
 export function ChatInput({ isStreaming, isStopping, onSubmit, onStop }: ChatInputProps) {
   const [value, setValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,10 +33,25 @@ export function ChatInput({ isStreaming, isStopping, onSubmit, onStop }: ChatInp
 
   return (
     <form className={['glass-panel', styles.form].join(' ')} onSubmit={handleSubmit}>
+      <div
+        className={[styles.helperBar, isFocused ? '' : styles.helperBarCollapsed].join(' ')}
+      >
+        <p className={styles.helperLead}>把预算、场景和对比对象写清楚，答案会更快收敛到可购买结论。</p>
+        <div className={styles.helperList}>
+          {INPUT_HINTS.map((hint) => (
+            <div key={hint.label} className={styles.helperItem}>
+              <span className={styles.helperLabel}>{hint.label}</span>
+              <span className={styles.helperText}>{hint.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       <textarea
         className={styles.textarea}
         value={value}
         onChange={(event) => setValue(event.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         rows={1}
         placeholder="描述你的购买目标，例如：帮我挑一台预算 ¥3000 左右的降噪耳机"
       />
