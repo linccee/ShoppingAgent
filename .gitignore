@@ -9,6 +9,7 @@ __pycache__/
 # Environment
 .env
 .venv
+CLAUDE.md
 env/
 venv/
 ENV/

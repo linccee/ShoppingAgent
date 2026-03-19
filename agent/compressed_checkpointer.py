@@ -5,10 +5,12 @@
 1. 原始 LangGraph checkpoint 立即落库，保证正确性
 2. 压缩后的 LLM 上下文异步持久化到独立集合，供后续请求快速读取
 3. 同一 thread 仅以最新快照为准，过期压缩结果丢弃
+4. lite_llm 调用严格限制在 1 req/s（API 速率限制）
 """
 import logging
 import queue
 import threading
+import time
 import uuid
 from typing import Optional
 
@@ -55,6 +57,27 @@ _stop_compression_worker = threading.Event()
 
 _compressed_state_cache: dict[str, dict] = {}
 _cache_lock = threading.Lock()
+
+# ── 全局 LITE_LLM 速率限制器：确保调用间隔 ≥ 1 秒 ──────────────────────────
+_llm_rate_limit_lock = threading.Lock()
+_last_llm_call_time: float = 0.0
+_MIN_CALL_INTERVAL: float = 1.5  # 秒
+
+
+def _enforce_rate_limit() -> None:
+    """
+    强制确保两次 lite_llm 调用之间至少间隔 1.5 秒。
+    线程安全，使用全局锁保护。
+    """
+    global _last_llm_call_time
+    with _llm_rate_limit_lock:
+        now = time.monotonic()
+        elapsed = now - _last_llm_call_time
+        if elapsed < _MIN_CALL_INTERVAL:
+            sleep_duration = _MIN_CALL_INTERVAL - elapsed
+            _log.debug("[RATE_LIMIT] Sleeping %.2fs to respect 1 req/s limit", sleep_duration)
+            time.sleep(sleep_duration)
+        _last_llm_call_time = time.monotonic()
 
 
 def _cache_state(state: dict | None) -> None:
@@ -157,6 +180,8 @@ def _process_compression_task(task: _CompressionTask) -> None:
     )
 
     try:
+        # 速率限制：确保 lite_llm 调用不超过 1 req/s
+        _enforce_rate_limit()
         compressed_messages = compress_history(
             task.messages,
             threshold=Config.COMPRESSION_THRESHOLD,
