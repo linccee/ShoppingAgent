@@ -23,7 +23,7 @@
 
 - 后端：FastAPI + LangGraph + MongoDB
 - 前端：React 18 + TypeScript + Vite
-- 旧版 Streamlit 运行文件已下线；仅保留 `*.backup` 备份文件
+- 旧版 Streamlit 运行文件已下线
 
 ## 系统架构
 
