@@ -7,6 +7,12 @@ export const initialAppState: AppState = {
   inputTokens: 0,
   outputTokens: 0,
   health: 'loading',
+  runtimeConfig: {
+    model: null,
+    temperature: 0,
+    max_tokens: 0,
+    memory_turns: 0,
+  },
   isStreaming: false,
   isStopping: false,
   isBootstrapping: true,
@@ -16,7 +22,13 @@ export const initialAppState: AppState = {
 export type AppAction =
   | { type: 'bootstrap/complete' }
   | { type: 'bootstrap/error'; payload: string }
-  | { type: 'health/set'; payload: AppState['health'] }
+  | {
+      type: 'health/set';
+      payload: {
+        health: AppState['health'];
+        runtimeConfig: AppState['runtimeConfig'];
+      };
+    }
   | { type: 'sessions/set'; payload: SessionSummary[] }
   | { type: 'session/load'; payload: SessionDetail }
   | { type: 'session/create'; payload: SessionDetail }
@@ -86,7 +98,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case 'health/set':
       return {
         ...state,
-        health: action.payload,
+        health: action.payload.health,
+        runtimeConfig: action.payload.runtimeConfig,
       };
     case 'sessions/set':
       return {

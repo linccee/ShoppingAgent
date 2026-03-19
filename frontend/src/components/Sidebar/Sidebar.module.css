@@ -1,6 +1,11 @@
 .sidebar {
   display: grid;
   gap: 1rem;
+  position: sticky;
+  top: 1.4rem;
+  max-height: calc(100vh - 2.8rem);
+  overflow-y: auto;
+  padding-right: 0.2rem;
 }
 
 .brand,
@@ -60,18 +65,24 @@
   color: var(--text-main);
 }
 
+.metricValue {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .actions {
   display: grid;
   gap: 0.75rem;
 }
 
-.tipList {
-  display: grid;
-  gap: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-
-.tipList p {
-  margin: 0;
+@media (max-width: 1080px) {
+  .sidebar {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
 }

@@ -42,24 +42,22 @@ def save_session(session_id: str, messages: list, input_tokens: int = 0, output_
 
     now = datetime.utcnow()
     
-    # 更新插入文档
+    # 一次 upsert 同时更新运行时字段，并只在首次创建时写入 created_at。
     sessions_col.update_one(
         {"session_id": session_id},
-        {"$set": {
-            "title": title,
-            "messages": messages,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "updated_at": now
-        }},
-        upsert=True
-    )
-    
-    # 仅在插入时设置 created_at
-    sessions_col.update_one(
-        {"session_id": session_id},
-        {"$setOnInsert": {"created_at": now}},
-        upsert=True
+        {
+            "$set": {
+                "title": title,
+                "messages": messages,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "updated_at": now,
+            },
+            "$setOnInsert": {
+                "created_at": now,
+            },
+        },
+        upsert=True,
     )
     
     return session_id

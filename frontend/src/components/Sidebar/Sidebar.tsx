@@ -1,7 +1,10 @@
+import { useState } from 'react';
+
 import { Button } from '../common/Button';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import { SessionList } from './SessionList';
 import styles from './Sidebar.module.css';
-import type { HealthState, Message, SessionSummary } from '../../types';
+import type { HealthState, Message, RuntimeConfig, SessionSummary } from '../../types';
 
 interface SidebarProps {
   sessions: SessionSummary[];
@@ -10,10 +13,12 @@ interface SidebarProps {
   inputTokens: number;
   outputTokens: number;
   health: HealthState;
+  runtimeConfig: RuntimeConfig;
   isBusy: boolean;
   onSelectSession: (sessionId: string) => void;
   onNewSession: () => void;
   onDeleteCurrent: () => void;
+  onDeleteSession: (sessionId: string) => Promise<void>;
 }
 
 function getHealthLabel(health: HealthState): string {
@@ -36,16 +41,40 @@ export function Sidebar({
   inputTokens,
   outputTokens,
   health,
+  runtimeConfig,
   isBusy,
   onSelectSession,
   onNewSession,
   onDeleteCurrent,
+  onDeleteSession,
 }: SidebarProps) {
+  const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const userTurns = messages.filter((message) => message.role === 'user').length;
   const toolCalls = messages.reduce(
     (count, message) => count + (message.role === 'assistant' ? message.steps?.length ?? 0 : 0),
     0,
   );
+  const activeSession = sessions.find((session) => session.session_id === activeSessionId) ?? null;
+
+  async function confirmDeleteSession(): Promise<void> {
+    if (!pendingDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await onDeleteSession(pendingDelete.session_id);
+      setPendingDelete(null);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : '删除会话失败');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <aside className={styles.sidebar}>
@@ -61,6 +90,26 @@ export function Sidebar({
         <div className="status-badge">
           <span className={styles.statusDot} />
           {getHealthLabel(health)}
+        </div>
+      </section>
+
+      <section className={['glass-panel', styles.panel].join(' ')}>
+        <p className="eyebrow">当前配置</p>
+        <div className={styles.metricRow}>
+          <span>模型</span>
+          <strong className={styles.metricValue}>{runtimeConfig.model ?? '未设置'}</strong>
+        </div>
+        <div className={styles.metricRow}>
+          <span>温度</span>
+          <strong>{runtimeConfig.temperature}</strong>
+        </div>
+        <div className={styles.metricRow}>
+          <span>Max Tokens</span>
+          <strong>{runtimeConfig.max_tokens}</strong>
+        </div>
+        <div className={styles.metricRow}>
+          <span>记忆轮次</span>
+          <strong>{runtimeConfig.memory_turns} 轮</strong>
         </div>
       </section>
 
@@ -88,7 +137,18 @@ export function Sidebar({
         <Button variant="primary" onClick={onNewSession} disabled={isBusy}>
           开启新对话
         </Button>
-        <Button variant="danger" onClick={onDeleteCurrent} disabled={isBusy || !activeSessionId}>
+        <Button
+          variant="danger"
+          onClick={() => {
+            if (activeSession) {
+              setDeleteError(null);
+              setPendingDelete(activeSession);
+              return;
+            }
+            onDeleteCurrent();
+          }}
+          disabled={isBusy || !activeSessionId}
+        >
           清空当前对话
         </Button>
       </section>
@@ -99,18 +159,33 @@ export function Sidebar({
           sessions={sessions}
           activeSessionId={activeSessionId}
           onSelect={onSelectSession}
+          onRequestDelete={(session) => {
+            setDeleteError(null);
+            setPendingDelete(session);
+          }}
+          isBusy={isBusy || isDeleting}
         />
       </section>
 
-      <section className={['glass-panel', styles.panel].join(' ')}>
-        <p className="eyebrow">使用提示</p>
-        <div className={styles.tipList}>
-          <p><strong>预算</strong> 尽量说明预算区间，我会收敛到更可执行的方案。</p>
-          <p><strong>场景</strong> 通勤、游戏、办公、拍摄等使用场景会显著影响推荐。</p>
-          <p><strong>对比</strong> 可以直接让我比较两个型号或两个平台的差异。</p>
-          <p><strong>切换</strong> 如果想切到全新品类，建议开启新对话。</p>
-        </div>
-      </section>
+      {pendingDelete ? (
+        <ConfirmDialog
+          title={`删除「${pendingDelete.title}」？`}
+          description="确认后会同时删除数据库记录、内存中的会话列表缓存，以及浏览器里保存的当前会话标识。这个操作无法撤销。"
+          confirmLabel="确认删除"
+          isProcessing={isDeleting}
+          error={deleteError}
+          onCancel={() => {
+            if (isDeleting) {
+              return;
+            }
+            setDeleteError(null);
+            setPendingDelete(null);
+          }}
+          onConfirm={() => {
+            void confirmDeleteSession();
+          }}
+        />
+      ) : null}
     </aside>
   );
 }

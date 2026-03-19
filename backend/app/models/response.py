@@ -44,3 +44,7 @@ class HealthResponse(BaseModel):
 
     status: str
     mongo: str
+    model: str | None = None
+    temperature: float
+    max_tokens: int
+    memory_turns: int

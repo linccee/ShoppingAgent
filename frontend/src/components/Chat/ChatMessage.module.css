@@ -22,6 +22,7 @@
 .content {
   color: var(--text-main);
   line-height: 1.8;
+  min-width: 0;
   white-space: pre-wrap;
 }
 

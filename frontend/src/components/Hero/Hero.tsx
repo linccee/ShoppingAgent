@@ -8,6 +8,8 @@ const EXAMPLE_PROMPTS = [
   '现在买 PS5，哪个平台更划算？',
 ];
 
+const PLATFORM_SIGNALS = ['Google Shopping', 'Amazon', 'eBay'];
+
 interface HeroProps {
   showPrompts: boolean;
   onPromptSelect: (prompt: string) => void;
@@ -16,7 +18,13 @@ interface HeroProps {
 export function Hero({ showPrompts, onPromptSelect }: HeroProps) {
   return (
     <section className={styles.wrap}>
-      <div className={['glass-panel', styles.hero].join(' ')}>
+      <div
+        className={[
+          'glass-panel',
+          styles.hero,
+          !showPrompts ? styles.compact : '',
+        ].join(' ')}
+      >
         <div className={styles.copy}>
           <p className="eyebrow">Mirror Curation · 镜澜导购</p>
           <h2>把复杂购物决策，整理成一眼就能判断的答案。</h2>
@@ -24,22 +32,21 @@ export function Hero({ showPrompts, onPromptSelect }: HeroProps) {
             连接 Google Shopping、Amazon 与 eBay，帮你完成比价、评论归纳与购买建议，
             在一轮对话里得到更清晰的购买判断。
           </p>
-          <div className={styles.tags}>
-            <span>多平台比价</span>
-            <span>评论洞察</span>
-            <span>预算决策</span>
+          <div className={styles.metaRow}>
+            <div className={styles.tags}>
+              <span>多平台比价</span>
+              <span>评论洞察</span>
+              <span>预算决策</span>
+            </div>
+            <div className={styles.platformStrip}>
+              {PLATFORM_SIGNALS.map((platform) => (
+                <span key={platform} className={styles.platformBadge}>
+                  {platform}
+                </span>
+              ))}
+              <span className={styles.platformNote}>搜索、评论与价格判断会被整理成一份可执行结论。</span>
+            </div>
           </div>
-        </div>
-
-        <div className={styles.visual}>
-          <div className={styles.artShell}>
-            <span className={styles.glowA} />
-            <span className={styles.glowB} />
-            <span className={styles.prismA} />
-            <span className={styles.prismB} />
-            <span className={styles.sheen} />
-          </div>
-          <p>为犹豫不决的购买时刻，提供更清晰的结论。</p>
         </div>
       </div>
 

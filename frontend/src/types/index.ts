@@ -1,5 +1,12 @@
 export type HealthState = 'loading' | 'ok' | 'degraded' | 'error';
 
+export interface RuntimeConfig {
+  model: string | null;
+  temperature: number;
+  max_tokens: number;
+  memory_turns: number;
+}
+
 export interface ToolStep {
   type: 'tool';
   tool: string;
@@ -38,6 +45,10 @@ export interface StopChatResponse {
 export interface HealthResponse {
   status: 'ok' | 'degraded';
   mongo: 'up' | 'down';
+  model: string | null;
+  temperature: number;
+  max_tokens: number;
+  memory_turns: number;
 }
 
 export interface TokenUsage {
@@ -121,6 +132,7 @@ export interface AppState {
   inputTokens: number;
   outputTokens: number;
   health: HealthState;
+  runtimeConfig: RuntimeConfig;
   isStreaming: boolean;
   isStopping: boolean;
   isBootstrapping: boolean;

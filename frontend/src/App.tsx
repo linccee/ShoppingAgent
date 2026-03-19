@@ -13,7 +13,7 @@ import styles from './App.module.css';
 
 function Shell() {
   const state = useAppState();
-  const { initializeApp, loadSession, createAndSelectSession, removeActiveSession } = useSessions();
+  const { initializeApp, loadSession, createAndSelectSession, removeActiveSession, removeSession } = useSessions();
   const { sendMessage, stopGeneration } = useChat();
 
   useEffect(() => {
@@ -33,10 +33,12 @@ function Shell() {
         inputTokens={state.inputTokens}
         outputTokens={state.outputTokens}
         health={state.health}
+        runtimeConfig={state.runtimeConfig}
         isBusy={state.isStreaming}
         onSelectSession={(sessionId) => void loadSession(sessionId)}
         onNewSession={() => void createAndSelectSession()}
         onDeleteCurrent={() => void removeActiveSession()}
+        onDeleteSession={(sessionId) => removeSession(sessionId)}
       />
 
       <main className={styles.main}>
@@ -47,22 +49,26 @@ function Shell() {
 
         {state.error ? <div className={styles.error}>{state.error}</div> : null}
 
-        <section className={styles.conversation}>
-          {state.messages.map((message, index) => (
-            <ChatMessage
-              key={`${message.role}-${index}`}
-              message={message}
-              isStreamingMessage={state.isStreaming && index === state.messages.length - 1}
-            />
-          ))}
-        </section>
+        <section className={styles.chatPane}>
+          <section className={styles.conversation}>
+            {state.messages.map((message, index) => (
+              <ChatMessage
+                key={`${message.role}-${index}`}
+                message={message}
+                isStreamingMessage={state.isStreaming && index === state.messages.length - 1}
+              />
+            ))}
+          </section>
 
-        <ChatInput
-          isStreaming={state.isStreaming}
-          isStopping={state.isStopping}
-          onSubmit={(content) => void sendMessage(content)}
-          onStop={() => void stopGeneration()}
-        />
+          <div className={styles.composer}>
+            <ChatInput
+              isStreaming={state.isStreaming}
+              isStopping={state.isStopping}
+              onSubmit={(content) => void sendMessage(content)}
+              onStop={() => void stopGeneration()}
+            />
+          </div>
+        </section>
       </main>
     </div>
   );

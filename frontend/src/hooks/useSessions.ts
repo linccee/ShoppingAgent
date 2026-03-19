@@ -1,13 +1,24 @@
 import { useCallback } from 'react';
 
 import { useAppDispatch, useAppState } from '../context/useAppStore';
-import { createSession, deleteSession, getHealth, getSession, listSessions } from '../services/api';
+import {
+  ApiError,
+  createSession,
+  deleteSession,
+  getHealth,
+  getSession,
+  listSessions,
+} from '../services/api';
 import type { SessionSummary } from '../types';
 
 const ACTIVE_SESSION_KEY = 'mirror-curation.active-session-id';
 
 function persistActiveSession(sessionId: string): void {
   window.localStorage.setItem(ACTIVE_SESSION_KEY, sessionId);
+}
+
+function clearActiveSession(): void {
+  window.localStorage.removeItem(ACTIVE_SESSION_KEY);
 }
 
 function getPreferredSessionId(sessions: SessionSummary[]): string | null {
@@ -61,6 +72,11 @@ export function useSessions() {
     dispatch({ type: 'session/create', payload: detail });
   }, [dispatch, refreshSessions]);
 
+  const recoverMissingSession = useCallback(async () => {
+    clearActiveSession();
+    await createAndSelectSession();
+  }, [createAndSelectSession]);
+
   const initializeApp = useCallback(async () => {
     try {
       const [healthResult, sessions] = await Promise.all([
@@ -70,13 +86,29 @@ export function useSessions() {
 
       dispatch({
         type: 'health/set',
-        payload: healthResult ? healthResult.status : 'error',
+        payload: {
+          health: healthResult ? healthResult.status : 'error',
+          runtimeConfig: {
+            model: healthResult?.model ?? null,
+            temperature: healthResult?.temperature ?? 0,
+            max_tokens: healthResult?.max_tokens ?? 0,
+            memory_turns: healthResult?.memory_turns ?? 0,
+          },
+        },
       });
       dispatch({ type: 'sessions/set', payload: sessions });
 
       const targetSessionId = getPreferredSessionId(sessions);
       if (targetSessionId) {
-        await loadSession(targetSessionId);
+        try {
+          await loadSession(targetSessionId);
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 404) {
+            await recoverMissingSession();
+          } else {
+            throw error;
+          }
+        }
       } else {
         await createAndSelectSession();
       }
@@ -88,30 +120,64 @@ export function useSessions() {
         payload: error instanceof Error ? error.message : '初始化失败',
       });
     }
-  }, [createAndSelectSession, dispatch, loadSession]);
+  }, [createAndSelectSession, dispatch, loadSession, recoverMissingSession]);
+
+  const removeSession = useCallback(
+    async (sessionId: string) => {
+      const removingActive = sessionId === state.activeSessionId;
+      const storedSessionId = window.localStorage.getItem(ACTIVE_SESSION_KEY);
+
+      await deleteSession(sessionId);
+
+      if (storedSessionId === sessionId || removingActive) {
+        clearActiveSession();
+      }
+
+      const sessions = await refreshSessions();
+
+      if (!removingActive) {
+        return;
+      }
+
+      if (sessions.length === 0) {
+        await createAndSelectSession();
+        return;
+      }
+
+      const nextSessionId = sessions[0].session_id;
+      try {
+        await loadSession(nextSessionId);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          await recoverMissingSession();
+          return;
+        }
+        throw error;
+      }
+    },
+    [
+      createAndSelectSession,
+      loadSession,
+      recoverMissingSession,
+      refreshSessions,
+      state.activeSessionId,
+    ],
+  );
 
   const removeActiveSession = useCallback(async () => {
     if (!state.activeSessionId) {
       return;
     }
 
-    await deleteSession(state.activeSessionId);
-    const sessions = await refreshSessions();
-
-    if (sessions.length === 0) {
-      await createAndSelectSession();
-      return;
-    }
-
-    const nextSessionId = getPreferredSessionId(sessions) ?? sessions[0].session_id;
-    await loadSession(nextSessionId);
-  }, [createAndSelectSession, loadSession, refreshSessions, state.activeSessionId]);
+    await removeSession(state.activeSessionId);
+  }, [removeSession, state.activeSessionId]);
 
   return {
     initializeApp,
     refreshSessions,
     loadSession,
     createAndSelectSession,
+    removeSession,
     removeActiveSession,
   };
 }

@@ -1,4 +1,5 @@
 import { ChatTimeline } from './ChatTimeline';
+import { MarkdownContent } from './MarkdownContent';
 import styles from './ChatMessage.module.css';
 import type { Message } from '../../types';
 
@@ -9,6 +10,7 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, isStreamingMessage }: ChatMessageProps) {
   const isAssistant = message.role === 'assistant';
+  const content = message.content || (isStreamingMessage ? '思考中...' : '');
 
   return (
     <article
@@ -22,7 +24,9 @@ export function ChatMessage({ message, isStreamingMessage }: ChatMessageProps) {
         {isAssistant && message.steps?.length ? (
           <ChatTimeline steps={message.steps} isComplete={!isStreamingMessage} />
         ) : null}
-        <div className={styles.content}>{message.content || (isStreamingMessage ? '思考中...' : '')}</div>
+        <div className={styles.content}>
+          {isAssistant ? <MarkdownContent content={content} /> : content}
+        </div>
       </div>
     </article>
   );
