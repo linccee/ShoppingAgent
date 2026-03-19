@@ -1,0 +1,43 @@
+.list {
+  display: grid;
+  gap: 0.8rem;
+  max-height: 18rem;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.item {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(75, 145, 255, 0.28);
+}
+
+.active {
+  border-color: rgba(75, 145, 255, 0.4);
+  box-shadow: 0 18px 36px rgba(75, 145, 255, 0.14);
+}
+
+.title {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.meta {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.empty {
+  color: var(--text-soft);
+  margin: 0;
+}

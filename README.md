@@ -19,17 +19,18 @@
 
 ## 当前状态
 
-当前受支持的运行入口已经切换为 `backend.app.main`。
+当前受支持的运行入口已经切换为 `backend.app.main` 和新的 `frontend/` React 应用。
 
 - 后端：FastAPI + LangGraph + MongoDB
-- 前端：React 尚未接入；根目录 `main.py`、`ui/`、`assets/` 仅保留作旧版 Streamlit 参考
+- 前端：React 18 + TypeScript + Vite
+- 旧版 Streamlit 运行文件已下线；仅保留 `*.backup` 备份文件
 
 ## 系统架构
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Client Layer                           │
-│          React Frontend (待接入) / 任意 HTTP Client         │
+│            React Frontend / 任意 HTTP Client                │
 └────────────────────────────┬────────────────────────────────┘
                              │
 ┌────────────────────────────▼────────────────────────────────┐
@@ -77,8 +78,17 @@ input → search → ┬→ price ─┐
 
 ### 安装依赖
 
+后端依赖：
+
 ```bash
 pip install -r backend/requirements.txt
+```
+
+前端依赖：
+
+```bash
+cd frontend
+npm install
 ```
 
 ### 配置环境变量
@@ -104,11 +114,21 @@ EXCHANGE_RATE_API_KEY=your_exchange_rate_key
 
 ### 启动
 
+后端：
+
 ```bash
 uvicorn backend.app.main:app --reload
 ```
 
-应用默认运行在 `http://127.0.0.1:8000`
+前端：
+
+```bash
+cd frontend
+npm run dev
+```
+
+- 后端默认运行在 `http://127.0.0.1:8000`
+- 前端默认运行在 `http://127.0.0.1:5173`
 
 ### API 概览
 
@@ -135,13 +155,12 @@ uvicorn backend.app.main:app --reload
 │   ├── tools/              # 搜索/价格/评论/汇率/Tavily 工具
 │   ├── utils/db.py         # MongoDB 会话与压缩状态
 │   └── requirements.txt
-├── main.py                 # 旧版 Streamlit 入口（仅参考）
-├── ui/                     # 旧版 Streamlit UI（仅参考）
-├── utils/
-│   └── db.py               # 旧版 Streamlit 会话工具（仅参考）
-├── test/                   # 单元测试
-└── assets/
-    └── style.css           # 旧版 Streamlit 样式（仅参考）
+├── frontend/
+│   ├── src/                # React 前端源码
+│   ├── package.json
+│   └── vite.config.ts
+├── test/                   # Python 单元测试
+└── *.backup                # 迁移前备份文件
 ```
 
 ## 工具说明
@@ -167,7 +186,7 @@ uvicorn backend.app.main:app --reload
 | 类别 | 技术 |
 |------|------|
 | API | FastAPI 0.116, Uvicorn |
-| 前端 | React 待接入，旧版 Streamlit 仅保留参考 |
+| 前端 | React 18 + TypeScript + Vite |
 | Agent | LangGraph 1.1, LangChain Core |
 | 记忆 | MongoDB + LangGraph Checkpointer |
 | 搜索 | SerpAPI, Tavily API |

@@ -38,3 +38,7 @@ logs/
 
 # tests
 test/
+
+# frontend
+frontend/node_modules/
+frontend/dist/

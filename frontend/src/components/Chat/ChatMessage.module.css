@@ -1,0 +1,34 @@
+.message {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.body {
+  padding: 1rem 1.1rem;
+}
+
+.content {
+  color: var(--text-main);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.user .body {
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.assistant .body {
+  background: rgba(255, 255, 255, 0.58);
+}
