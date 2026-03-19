@@ -1,0 +1,157 @@
+.wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(240px, 0.85fr);
+  gap: 1.5rem;
+  padding: 1.8rem;
+  box-shadow: var(--shadow-strong);
+}
+
+.copy h2 {
+  margin: 0;
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(2rem, 4vw, 3.05rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.text {
+  margin: 1rem 0 1.3rem;
+  max-width: 40rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.tags span {
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(115, 146, 182, 0.2);
+  background: rgba(255, 255, 255, 0.42);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.visual {
+  display: grid;
+  align-content: space-between;
+  gap: 1rem;
+}
+
+.visual p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.artShell {
+  position: relative;
+  min-height: 15rem;
+  overflow: hidden;
+  border-radius: 1.8rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(218, 235, 255, 0.34));
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -14px 36px rgba(106, 153, 209, 0.1),
+    0 24px 40px rgba(105, 143, 181, 0.16);
+}
+
+.glowA,
+.glowB,
+.prismA,
+.prismB,
+.sheen {
+  position: absolute;
+}
+
+.glowA {
+  inset: auto auto 1.5rem 1rem;
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(75, 145, 255, 0.46), transparent 68%);
+}
+
+.glowB {
+  inset: 1.2rem 1.2rem auto auto;
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.96), transparent 60%);
+}
+
+.prismA,
+.prismB {
+  inset: auto;
+  border-radius: 1.4rem;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(122, 187, 255, 0.18));
+}
+
+.prismA {
+  width: 8rem;
+  height: 8rem;
+  right: 2.4rem;
+  top: 3rem;
+  transform: rotate(18deg);
+}
+
+.prismB {
+  width: 5.5rem;
+  height: 5.5rem;
+  right: 6rem;
+  bottom: 2rem;
+  transform: rotate(-18deg);
+}
+
+.sheen {
+  inset: 0;
+  background:
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.96), transparent 36%),
+    linear-gradient(120deg, transparent 36%, rgba(255, 255, 255, 0.34) 50%, transparent 62%);
+}
+
+.prompts {
+  padding: 1.5rem;
+}
+
+.promptCopy h3 {
+  margin: 0.2rem 0 0.65rem;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.5rem;
+}
+
+.promptCopy p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.75;
+}
+
+.promptGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.2rem;
+}
+
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .promptGrid {
+    grid-template-columns: 1fr;
+  }
+}

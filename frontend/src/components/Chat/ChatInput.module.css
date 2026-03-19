@@ -1,0 +1,26 @@
+.form {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 4rem;
+  resize: vertical;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  line-height: 1.8;
+}
+
+.textarea::placeholder {
+  color: var(--text-soft);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,77 @@
+.sidebar {
+  display: grid;
+  gap: 1rem;
+}
+
+.brand,
+.panel {
+  padding: 1.25rem;
+}
+
+.titleRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.titleRow h1 {
+  margin: 0 0 0.3rem;
+  font-size: 1.6rem;
+}
+
+.titleRow p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  color: var(--accent-strong);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.statusDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0.35rem rgba(44, 156, 106, 0.12);
+}
+
+.metricRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.metricRow + .metricRow {
+  margin-top: 0.9rem;
+}
+
+.metricRow strong {
+  color: var(--text-main);
+}
+
+.actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tipList {
+  display: grid;
+  gap: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.tipList p {
+  margin: 0;
+}

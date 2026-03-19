@@ -1,0 +1,33 @@
+.shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 1.25rem;
+  width: min(1400px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.4rem 0 2.5rem;
+}
+
+.main {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.conversation {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.error {
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  background: rgba(211, 91, 107, 0.12);
+  color: #9c3146;
+  border: 1px solid rgba(211, 91, 107, 0.18);
+}
+
+@media (max-width: 1080px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+}

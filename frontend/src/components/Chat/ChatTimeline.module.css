@@ -1,0 +1,80 @@
+.details {
+  margin-bottom: 0.8rem;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-top: 1.1rem;
+  border-radius: 50%;
+  background: rgba(75, 145, 255, 0.82);
+  box-shadow: 0 0 0 0.4rem rgba(75, 145, 255, 0.12);
+}
+
+.card {
+  padding: 0.95rem 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(75, 145, 255, 0.12);
+  color: var(--accent-strong);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+}
+
+.meta {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.meta strong {
+  color: var(--text-main);
+}
+
+.status {
+  margin-left: auto;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.running .dot {
+  background: rgba(75, 145, 255, 0.72);
+}
+
+.complete .dot {
+  background: rgba(44, 156, 106, 0.72);
+  box-shadow: 0 0 0 0.4rem rgba(44, 156, 106, 0.12);
+}
