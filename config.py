@@ -41,3 +41,6 @@ class Config:
 
     # ── 货币转换API配置 ──
     EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
+
+    # ── JWT配置 ──
+    JWT_SECRET = os.getenv("JWT_SECRET")
