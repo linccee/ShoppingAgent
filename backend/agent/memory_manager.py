@@ -114,6 +114,83 @@ def validate_message_history(messages: Sequence[BaseMessage]) -> None:
         raise InvalidCompressedHistoryError("History ends with unresolved tool calls")
 
 
+def sanitize_tool_calls_from_checkpoint(checkpoint: dict) -> dict:
+    """
+    从 checkpoint 的 channel_values.messages 中移除未完成的 tool_calls。
+
+    当用户点击停止按钮时，LangGraph checkpoint 可能包含一个 AIMessage
+    带有 tool_calls 但没有对应的 ToolMessage（因为 stop 阻断了工具调用链）。
+    这种损坏的 checkpoint 会导致下次加载时 LangGraph 抛出 INVALID_CHAT_HISTORY。
+
+    本函数找到最后一条带有未完成 tool_calls 的 AIMessage，清除其 tool_calls
+    字段（保留 content），使历史变得合法。
+    """
+    import copy
+
+    if not checkpoint:
+        return checkpoint
+
+    channel_values = checkpoint.get("channel_values", {})
+    if not channel_values or "messages" not in channel_values:
+        return checkpoint
+
+    messages = channel_values["messages"]
+    if not isinstance(messages, list):
+        return checkpoint
+
+    # 检测 pending tool_call_ids（与 validate_message_history 相同逻辑）
+    pending: set[str] = set()
+    last_ai_with_tool_calls = None
+    last_ai_with_tool_calls_index = -1
+
+    for i, msg in enumerate(messages):
+        if isinstance(msg, ToolMessage):
+            tool_call_id = getattr(msg, "tool_call_id", None) or ""
+            if tool_call_id in pending:
+                pending.remove(tool_call_id)
+            continue
+
+        if pending:
+            # Non-tool message appeared before resolving pending tool calls
+            pending = set()
+            if isinstance(msg, AIMessage) and getattr(msg, "tool_calls", None):
+                last_ai_with_tool_calls = msg
+                last_ai_with_tool_calls_index = i
+
+        if isinstance(msg, AIMessage) and getattr(msg, "tool_calls", None):
+            next_pending: set[str] = set()
+            for tc in msg.tool_calls:
+                tc_id = tc.get("id")
+                if tc_id:
+                    next_pending.add(tc_id)
+            if next_pending:
+                pending = next_pending
+                last_ai_with_tool_calls = msg
+                last_ai_with_tool_calls_index = i
+
+    # 如果有未解决的 tool_calls，清理最后一条 AIMessage 的 tool_calls
+    if pending and last_ai_with_tool_calls is not None:
+        _log.warning(
+            "[SANITIZE] Removing %d unresolved tool_calls from AIMessage at index %d",
+            len(pending),
+            last_ai_with_tool_calls_index,
+        )
+
+        # 创建深拷贝以避免修改原始 checkpoint
+        checkpoint = copy.deepcopy(checkpoint)
+        messages = checkpoint["channel_values"]["messages"]
+        msg = messages[last_ai_with_tool_calls_index]
+
+        # 清除 tool_calls（保留 content）
+        if hasattr(msg, "tool_calls"):
+            msg.tool_calls = []
+        if hasattr(msg, "type"):
+            # AIMessage 的 dict 表示
+            msg["tool_calls"] = []
+
+    return checkpoint
+
+
 def _format_messages_for_summary(messages: Sequence[BaseMessage]) -> str:
     """将消息格式化为易读的文本，用于 LLM 摘要"""
     lines = []

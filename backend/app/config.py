@@ -45,3 +45,13 @@ class Config:
 
     # ── JWT配置 ──
     JWT_SECRET = os.getenv("JWT_SECRET")
+    JWT_ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_DAYS = 7
+
+    # ── 密码策略 ──
+    PASSWORD_MIN_LENGTH = 8
+    PASSWORD_REQUIRE_DIGIT = True
+    PASSWORD_REQUIRE_LETTER = True
+
+    # ── CORS配置 ──
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")

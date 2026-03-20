@@ -275,11 +275,21 @@ class CompressedCheckpointer(BaseCheckpointSaver):
             return None
 
         thread_id = config.get("configurable", {}).get("thread_id", "default")
-        preferred_messages = self._get_preferred_messages(thread_id)
-        if not preferred_messages:
-            return checkpoint
 
-        return _replace_checkpoint_messages(checkpoint, preferred_messages)
+        # 尝试用持久化压缩状态替换
+        preferred_messages = self._get_preferred_messages(thread_id)
+        if preferred_messages:
+            return _replace_checkpoint_messages(checkpoint, preferred_messages)
+
+        # 没有压缩状态：检查原始 checkpoint 是否损坏（stop 时可能产生）
+        try:
+            from backend.agent.memory_manager import sanitize_tool_calls_from_checkpoint
+
+            checkpoint = sanitize_tool_calls_from_checkpoint(checkpoint)
+        except Exception as exc:
+            _log.warning("[CHECKPOINTER] sanitize_tool_calls_from_checkpoint failed: %s", exc)
+
+        return checkpoint
 
     def put(
         self,
@@ -337,10 +347,19 @@ class CompressedCheckpointer(BaseCheckpointSaver):
 
         thread_id = config.get("configurable", {}).get("thread_id", "default")
         preferred_messages = self._get_preferred_messages(thread_id)
-        if not preferred_messages:
-            return tuple_result
 
-        checkpoint = _replace_checkpoint_messages(tuple_result.checkpoint, preferred_messages)
+        if preferred_messages:
+            checkpoint = _replace_checkpoint_messages(tuple_result.checkpoint, preferred_messages)
+        else:
+            # 没有压缩状态：尝试修复损坏的原始 checkpoint
+            try:
+                from backend.agent.memory_manager import sanitize_tool_calls_from_checkpoint
+
+                checkpoint = sanitize_tool_calls_from_checkpoint(tuple_result.checkpoint)
+            except Exception as exc:
+                _log.warning("[CHECKPOINTER] get_tuple sanitize failed: %s", exc)
+                checkpoint = tuple_result.checkpoint
+
         return CheckpointTuple(
             config=tuple_result.config,
             checkpoint=checkpoint,

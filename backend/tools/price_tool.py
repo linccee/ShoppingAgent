@@ -2,6 +2,7 @@ import json
 import serpapi
 from langchain.tools import tool
 from backend.app.config import Config
+from backend.app.utils.logging_config import tools_logger
 
 # 货币符号映射
 CURRENCY_SYMBOLS = {
@@ -35,10 +36,12 @@ def prices(product_sku: str, platform: str) -> str:
     Returns:
         结构化的价格信息，包含价格、平台、商品ID、标题和链接
     """
+    tools_logger.info(f"[TOOLS] prices called for SKU: {product_sku} on platform: {platform}")
     platform_lower = platform.strip().lower()
 
     # 验证平台参数
     if platform_lower not in ["amazon", "ebay"]:
+        tools_logger.warning(f"[TOOLS] prices failed: invalid platform {platform}")
         return json.dumps({
             "success": False,
             "error": "不支持的平台，请使用 'Amazon' 或 'eBay'"
@@ -46,21 +49,26 @@ def prices(product_sku: str, platform: str) -> str:
 
     try:
         if platform_lower == "amazon":
+            tools_logger.debug(f"[TOOLS] Fetching Amazon price for ASIN: {product_sku}")
             price_data = _fetch_amazon_price(product_sku)
         else:
+            tools_logger.debug(f"[TOOLS] Fetching eBay price for product_id: {product_sku}")
             price_data = _fetch_ebay_price(product_sku)
     except Exception as e:
+        tools_logger.error(f"[TOOLS] prices failed for SKU {product_sku}: {e}")
         return json.dumps({
             "success": False,
             "error": f"获取价格失败: {str(e)}"
         }, ensure_ascii=False)
 
     if not price_data:
+        tools_logger.warning(f"[TOOLS] prices: no data found for SKU {product_sku}")
         return json.dumps({
             "success": False,
             "error": f"未能获取到 {product_sku} 的价格数据"
         }, ensure_ascii=False)
 
+    tools_logger.info(f"[TOOLS] prices success for SKU {product_sku}: {price_data.get('price')}")
     return json.dumps({
         "success": True,
         "price": price_data.get("price"),

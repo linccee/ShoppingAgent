@@ -6,6 +6,7 @@ from typing import Generator
 
 from backend.agent.agent_core import create_shopping_agent, stream_agent
 from backend.app.services.session_service import SessionService
+from backend.app.utils.logging_config import agent_logger
 
 
 class AgentService:
@@ -47,6 +48,7 @@ class AgentService:
         session_id: str | None = None,
     ) -> Generator[tuple[str, object], None, None]:
         """Stream agent events and persist the session transcript."""
+        agent_logger.info(f"[AGENT] Starting stream for message={message[:50]}..., session_id={session_id}")
         resolved_session_id = self._session_service.create(session_id)
         session = self._session_service.get(resolved_session_id)
         messages = list(session.messages)
@@ -59,6 +61,7 @@ class AgentService:
         messages.append(assistant_message)
 
         stop_event = self._register_stop_event(resolved_session_id)
+        agent_logger.info(f"[AGENT] Stream started, session_id={resolved_session_id}")
         yield ("session", {"session_id": resolved_session_id})
 
         stopped = False
@@ -73,6 +76,7 @@ class AgentService:
                 if kind == "token":
                     assistant_message["content"] += str(data)
                 elif kind == "tool_start":
+                    agent_logger.debug(f"[AGENT] Tool started: {data.get('tool')}")
                     assistant_message["steps"].append(
                         {
                             "type": "tool",
@@ -82,13 +86,16 @@ class AgentService:
                         }
                     )
                 elif kind == "tool_end":
+                    agent_logger.debug(f"[AGENT] Tool ended")
                     if assistant_message["steps"]:
                         assistant_message["steps"][-1]["output"] = data
                 elif kind == "token_usage":
                     total_input_tokens += int(data.get("input_tokens", 0))
                     total_output_tokens += int(data.get("output_tokens", 0))
+                    agent_logger.debug(f"[AGENT] Token usage: input={data.get('input_tokens')}, output={data.get('output_tokens')}")
                 elif kind == "stopped":
                     stopped = True
+                    agent_logger.info(f"[AGENT] Stream stopped for session {resolved_session_id}")
 
                 yield (kind, data)
         finally:
@@ -99,6 +106,8 @@ class AgentService:
                 output_tokens=total_output_tokens,
             )
             self._clear_stop_event(resolved_session_id)
+            agent_logger.info(f"[AGENT] Session {resolved_session_id} saved, total_tokens: input={total_input_tokens}, output={total_output_tokens}")
 
         if not stopped:
+            agent_logger.info(f"[AGENT] Stream completed for session {resolved_session_id}")
             yield ("done", {"message": "completed"})

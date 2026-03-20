@@ -3,6 +3,7 @@ from backend.app.config import Config
 from langchain.tools import tool
 import serpapi
 import json
+from backend.app.utils.logging_config import tools_logger
 
 
 @tool
@@ -18,25 +19,32 @@ def analyze_reviews(product_sku: str, platform: str) -> str:
     Returns:
         结构化的评论分析报告，包含优点、缺点、情感评分
     """
+    tools_logger.info(f"[TOOLS] analyze_reviews called for SKU: {product_sku} on platform: {platform}")
     platform_lower = platform.strip().lower()
 
     # 验证平台参数
     if platform_lower not in ["amazon", "ebay"]:
+        tools_logger.warning(f"[TOOLS] analyze_reviews failed: invalid platform {platform}")
         return _format_error("不支持的平台，请使用 'Amazon' 或 'eBay'")
 
     # 获取评论数据
     try:
         if platform_lower == "amazon":
+            tools_logger.debug(f"[TOOLS] Fetching Amazon reviews for ASIN: {product_sku}")
             reviews_data = _fetch_amazon_reviews(product_sku)
         else:
+            tools_logger.debug(f"[TOOLS] Fetching eBay reviews for product_id: {product_sku}")
             reviews_data = _fetch_ebay_reviews(product_sku)
     except Exception as e:
+        tools_logger.error(f"[TOOLS] analyze_reviews failed for SKU {product_sku}: {e}")
         return _format_error(f"获取评论失败: {str(e)}")
 
     # 检查是否有评论数据
     if not reviews_data.get("reviews") or len(reviews_data.get("reviews", [])) == 0:
+        tools_logger.warning(f"[TOOLS] analyze_reviews: no reviews found for SKU {product_sku}")
         return _format_error(f"未能获取到 {product_sku} 的评论数据")
 
+    tools_logger.info(f"[TOOLS] analyze_reviews success for SKU {product_sku}")
     # 统一返回 JSON 字符串（保持与工具签名一致）
     return json.dumps(reviews_data, ensure_ascii=False)
 

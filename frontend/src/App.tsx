@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { AppProvider } from './context/AppContext';
+import { AuthProvider } from './context/AuthContext';
 import { useAppState } from './context/useAppStore';
 import { useSessions } from './hooks/useSessions';
 import { useChat } from './hooks/useChat';
@@ -9,6 +11,10 @@ import { Sidebar } from './components/Sidebar/Sidebar';
 import { Hero } from './components/Hero/Hero';
 import { ChatMessage } from './components/Chat/ChatMessage';
 import { ChatInput } from './components/Chat/ChatInput';
+import PrivateRoute from './components/PrivateRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
 import styles from './App.module.css';
 
 function Shell() {
@@ -76,8 +82,22 @@ function Shell() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <Shell />
-    </AppProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            <Route element={<PrivateRoute />}>
+              <Route path="/chat" element={<Shell />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+
+            <Route path="/" element={<Navigate to="/chat" replace />} />
+          </Routes>
+        </AppProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

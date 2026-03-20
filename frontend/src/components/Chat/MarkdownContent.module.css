@@ -108,3 +108,39 @@
   border: 0;
   background: linear-gradient(90deg, transparent, rgba(97, 117, 142, 0.28), transparent);
 }
+
+/* Tables (rendered via react-markdown + remark-gfm) */
+.root :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  display: block;
+}
+
+.root :global(th),
+.root :global(td) {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.root :global(th) {
+  font-weight: 600;
+  color: var(--text-main);
+  background: rgba(24, 50, 77, 0.06);
+  border-bottom: 2px solid rgba(24, 50, 77, 0.12);
+}
+
+.root :global(td) {
+  color: var(--text-main);
+  border-bottom: 1px solid rgba(24, 50, 77, 0.08);
+}
+
+.root :global(tr:last-child td) {
+  border-bottom: none;
+}
+
+.root :global(code) {
+  font-family: 'JetBrains Mono', monospace;
+}

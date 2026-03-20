@@ -113,6 +113,18 @@ def _make_config(session_id: str) -> dict:
     return {"configurable": {"thread_id": session_id}}
 
 
+def _delete_checkpoint(session_id: str) -> None:
+    """删除指定 session 的损坏 checkpoint，让 agent 从空白状态恢复。"""
+    try:
+        memory_saver = _get_memory_saver()
+        # MongoDBSaver.delete_thread takes thread_id directly
+        memory_saver._saver.delete_thread(session_id)
+        _log.debug("[CLEANUP] Deleted corrupted checkpoint for session_id=%s", session_id)
+    except Exception as exc:
+        _log.warning("[CLEANUP] Could not delete checkpoint: %s", exc)
+        raise
+
+
 def run_agent(agent_executor, user_input: str, session_id: str = "default") -> dict:
     """
     执行 Agent，返回结果字典。
@@ -170,10 +182,15 @@ class _QueueCallback(BaseCallbackHandler):
         self._accumulated_output = ""  # 累积完整输出，用于日志记录
         self._token_buffer = []  # 缓冲区，用于控制台批量输出
         self._last_token_log_time = 0
+        self._stopped = False  # 已发出停止信号，防止重复抛异常刷日志
 
     def _check_stop(self):
         if self._stop_event.is_set():
-            raise Exception("Generation stopped by user")
+            if not self._stopped:
+                self._stopped = True
+                raise Exception("Generation stopped by user")
+            # 停止后不再抛异常，避免刷屏 19+ 次同样错误
+            return
 
     def _flush_token_buffer(self, force: bool = False):
         """将缓冲区中的 token 批量输出到控制台，减少日志频率。"""
@@ -229,7 +246,7 @@ class _QueueCallback(BaseCallbackHandler):
         input_str: str,
         **kwargs,
     ) -> None:
-        self._check_stop()
+        self._check_stop()  # 若已stop会抛异常，阻止工具执行
         tool_name = serialized.get("name", "unknown")
         _log.debug(f"[TOOL_START] {tool_name}")
 
@@ -301,9 +318,32 @@ def stream_agent(
                         _log.debug(f"[FULL_OUTPUT] ----\n{output}\n---- (END, {len(output)} chars)")
                         q.put(("token", output))
         except Exception as exc:
-            if str(exc) == "Generation stopped by user":
+            exc_str = str(exc)
+            if exc_str == "Generation stopped by user":
                 _log.debug("[RUN] Stopped by user")
                 q.put(("stopped", "Generation stopped by user"))
+            elif "INVALID_CHAT_HISTORY" in exc_str or "tool_calls" in exc_str:
+                # Checkpoint 损坏（stop 中断留下），删除并重试一次
+                _log.warning("[RUN] Corrupted checkpoint detected: %s. Deleting and retrying.", exc_str)
+                try:
+                    _delete_checkpoint(session_id)
+                except Exception as del_exc:
+                    _log.warning("[RUN] Failed to delete corrupted checkpoint: %s", del_exc)
+                try:
+                    final_state = agent_executor.invoke(
+                        {"messages": [HumanMessage(content=user_input)]},
+                        config={
+                            **_make_config(session_id),
+                            "callbacks": [cb],
+                        },
+                    )
+                    if not cb._got_tokens:
+                        msgs = final_state.get("messages", [])
+                        if msgs and msgs[-1].content:
+                            q.put(("token", msgs[-1].content))
+                except Exception as retry_exc:
+                    _log.debug("[RUN] Retry also failed: %s", retry_exc)
+                    q.put(("error", str(retry_exc)))
             else:
                 import traceback
                 _log.debug(f"[RUN] EXCEPTION: {exc}")
@@ -320,6 +360,17 @@ def stream_agent(
         while True:
             item = q.get()
             if item is None:
+                break
+            # 收到停止信号后，不再向客户端yield任何内容，
+            # 直接排空队列中可能积压的item，让 _run() 线程能正常结束
+            if item[0] == "stopped":
+                _log.debug("[STREAM] Received stopped signal, draining queue")
+                while True:
+                    try:
+                        q.get_nowait()
+                        q.task_done()
+                    except queue.Empty:
+                        break
                 break
             yield item
     except BaseException as e:

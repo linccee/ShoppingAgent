@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Button } from '../common/Button';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { SessionList } from './SessionList';
+import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
 import type { HealthState, Message, RuntimeConfig, SessionSummary } from '../../types';
 
@@ -48,6 +50,7 @@ export function Sidebar({
   onDeleteCurrent,
   onDeleteSession,
 }: SidebarProps) {
+  const { user, logout } = useAuth();
   const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -90,6 +93,21 @@ export function Sidebar({
         <div className="status-badge">
           <span className={styles.statusDot} />
           {getHealthLabel(health)}
+        </div>
+      </section>
+
+      <section className={['glass-panel', styles.panel].join(' ')}>
+        <div className={styles.userSection}>
+          <div className={styles.userAvatar}>
+            {user?.username?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div className={styles.userInfo}>
+            <span className={styles.userName}>{user?.username}</span>
+            <Link to="/profile" className={styles.profileLink}>设置</Link>
+          </div>
+          <button onClick={logout} className={styles.logoutBtn} title="退出登录">
+            ↩
+          </button>
         </div>
       </section>
 

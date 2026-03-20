@@ -5,6 +5,7 @@ import re
 from typing import Optional
 
 from backend.app.config import Config
+from backend.app.utils.logging_config import tools_logger
 
 
 @tool
@@ -15,11 +16,14 @@ def search_products(query: str) -> str:
 
     参数说明：
         query: 搜索关键词，必须为英文，例如 'PlayStation 5 Slim'
+               注意：禁止在 query 中添加年份、日期或时间范围（如 2024、2025），直接使用核心关键词即可。
 
     返回：
         JSON 格式的商品列表，包含名称、价格、评分、链接、平台、评价数量
     """
     import serpapi
+
+    tools_logger.info(f"[TOOLS] search_products called with query: {query}")
 
     # SerpApi 购物搜索平台配置
     # 每个平台最多返回5个商品
@@ -51,6 +55,7 @@ def search_products(query: str) -> str:
     api_key = Config.SERPAPI_KEY
 
     if not api_key:
+        tools_logger.error("[TOOLS] SerpApi API Key not configured")
         return json.dumps({
             "success": False,
             "error": "未配置 SerpApi API Key，请设置 SERPAPI_API_KEY 环境变量",
@@ -72,6 +77,7 @@ def search_products(query: str) -> str:
             }
             params.update(platform["params"])
 
+            tools_logger.debug(f"[TOOLS] Searching {platform['name']} with query: {query}")
             search_result = serpapi.search(**params)
 
             # 提取 shopping_results 或 organic_results
@@ -81,16 +87,19 @@ def search_products(query: str) -> str:
 
             # 优先使用 shopping_results
             items = shopping_results if shopping_results else organic_results
+            tools_logger.debug(f"[TOOLS] {platform['name']} returned {len(items)} results")
 
             for item in items:
                 item["_platform"] = platform["name"]
                 item["_engine"] = platform["engine"]
                 all_results.append(item)
 
-        except Exception:
+        except Exception as e:
+            tools_logger.warning(f"[TOOLS] {platform['name']} search failed: {e}")
             continue
 
     if not all_results:
+        tools_logger.info(f"[TOOLS] No results found for query: {query}")
         return json.dumps({
             "success": True,
             "query": query,
@@ -140,6 +149,7 @@ def search_products(query: str) -> str:
             "product_sku": product_sku
         })
 
+    tools_logger.info(f"[TOOLS] search_products returning {len(structured_results)} results for query: {query}")
     return json.dumps({
         "success": True,
         "query": query,

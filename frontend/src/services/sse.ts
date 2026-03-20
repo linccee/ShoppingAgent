@@ -1,5 +1,6 @@
 import type { ChatEvent, ChatStreamRequest, RawChatEvent, ToolStep } from '../types';
 import { getApiBaseUrl } from './api';
+import { logger } from '../utils/logger';
 
 function parseFrame(frame: string, onEvent: (event: ChatEvent) => void): void {
   const dataLines = frame
@@ -78,20 +79,30 @@ function normalizeChatEvent(payload: RawChatEvent): ChatEvent {
 }
 
 export async function* streamChat(request: ChatStreamRequest): AsyncGenerator<ChatEvent> {
+  logger.info('SSE', `Starting chat stream for session ${request.session_id}`);
+
+  const token = window.localStorage.getItem('access_token');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${getApiBaseUrl()}/chat/stream`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(request),
   });
 
   if (!response.ok) {
     const detail = await response.text();
+    logger.error('SSE', `Chat stream failed: ${response.status}`, detail);
     throw new Error(detail || `Unable to stream chat: ${response.status}`);
   }
 
   if (!response.body) {
+    logger.error('SSE', 'Streaming response body is unavailable');
     throw new Error('Streaming response body is unavailable');
   }
 

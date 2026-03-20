@@ -3,6 +3,7 @@ import json
 import requests
 from langchain.tools import tool
 from backend.app.config import Config
+from backend.app.utils.logging_config import tools_logger
 
 
 @tool
@@ -18,19 +19,23 @@ def currency_exchange(base_code: str, target_code: str, amount: str) -> str:
     Returns:
         JSON 格式的结果，包含 conversion_rate（汇率）和 conversion_result（转换后金额）
     """
+    tools_logger.info(f"[TOOLS] currency_exchange called: {amount} {base_code} -> {target_code}")
     url = f"https://v6.exchangerate-api.com/v6/{Config.EXCHANGE_RATE_API_KEY}/pair/{base_code}/{target_code}/{amount}"
     try:
         response = requests.get(url, timeout=10)
         data = response.json()
     except Exception as e:
+        tools_logger.error(f"[TOOLS] currency_exchange network error: {e}")
         return json.dumps({"success": False, "error": f"网络请求失败: {e}"}, ensure_ascii=False)
 
     if data.get("result") != "success":
+        tools_logger.warning(f"[TOOLS] currency_exchange API error: {data.get('error-type', 'unknown')}")
         return json.dumps({
             "success": False,
             "error": f"API 请求失败，错误类型: {data.get('error-type', '未知错误')}"
         }, ensure_ascii=False)
 
+    tools_logger.info(f"[TOOLS] currency_exchange success: {amount} {base_code} = {data.get('conversion_result')} {target_code}")
     # 返回精简后的有效字段，避免把无关字段投入 context
     return json.dumps({
         "success": True,

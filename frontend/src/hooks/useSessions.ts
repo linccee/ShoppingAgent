@@ -10,6 +10,7 @@ import {
   listSessions,
 } from '../services/api';
 import type { SessionSummary } from '../types';
+import { logger } from '../utils/logger';
 
 const ACTIVE_SESSION_KEY = 'mirror-curation.active-session-id';
 
@@ -34,6 +35,7 @@ export function useSessions() {
   const dispatch = useAppDispatch();
 
   const refreshSessions = useCallback(async () => {
+    logger.debug('Sessions', 'Refreshing sessions');
     const sessions = await listSessions();
     dispatch({ type: 'sessions/set', payload: sessions });
     return sessions;
@@ -41,6 +43,7 @@ export function useSessions() {
 
   const loadSession = useCallback(
     async (sessionId: string) => {
+      logger.info('Sessions', `Loading session: ${sessionId}`);
       const detail = await getSession(sessionId);
       persistActiveSession(sessionId);
       dispatch({ type: 'session/load', payload: detail });
@@ -49,6 +52,7 @@ export function useSessions() {
   );
 
   const createAndSelectSession = useCallback(async () => {
+    logger.info('Sessions', 'Creating new session');
     const created = await createSession();
     const detail = await getSession(created.session_id);
     persistActiveSession(created.session_id);
@@ -73,11 +77,13 @@ export function useSessions() {
   }, [dispatch, refreshSessions]);
 
   const recoverMissingSession = useCallback(async () => {
+    logger.warn('Sessions', 'Recovering missing session');
     clearActiveSession();
     await createAndSelectSession();
   }, [createAndSelectSession]);
 
   const initializeApp = useCallback(async () => {
+    logger.info('Sessions', 'Initializing app');
     try {
       const [healthResult, sessions] = await Promise.all([
         getHealth().catch(() => null),
@@ -104,6 +110,7 @@ export function useSessions() {
           await loadSession(targetSessionId);
         } catch (error) {
           if (error instanceof ApiError && error.status === 404) {
+            logger.warn('Sessions', `Session ${targetSessionId} not found, recovering`);
             await recoverMissingSession();
           } else {
             throw error;
@@ -115,6 +122,7 @@ export function useSessions() {
 
       dispatch({ type: 'bootstrap/complete' });
     } catch (error) {
+      logger.error('Sessions', 'App initialization failed', error instanceof Error ? error.message : 'Unknown error');
       dispatch({
         type: 'bootstrap/error',
         payload: error instanceof Error ? error.message : '初始化失败',
@@ -124,6 +132,7 @@ export function useSessions() {
 
   const removeSession = useCallback(
     async (sessionId: string) => {
+      logger.info('Sessions', `Removing session: ${sessionId}`);
       const removingActive = sessionId === state.activeSessionId;
       const storedSessionId = window.localStorage.getItem(ACTIVE_SESSION_KEY);
 
@@ -149,6 +158,7 @@ export function useSessions() {
         await loadSession(nextSessionId);
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
+          logger.warn('Sessions', `Next session ${nextSessionId} not found, recovering`);
           await recoverMissingSession();
           return;
         }
