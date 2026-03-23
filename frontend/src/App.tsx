@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/common/Toast';
 import { useAppState } from './context/useAppStore';
 import { useSessions } from './hooks/useSessions';
 import { useChat } from './hooks/useChat';
@@ -83,9 +84,10 @@ function Shell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppProvider>
-          <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <AppProvider>
+            <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
@@ -96,8 +98,9 @@ export default function App() {
 
             <Route path="/" element={<Navigate to="/chat" replace />} />
           </Routes>
-        </AppProvider>
-      </AuthProvider>
-    </BrowserRouter>
+              </AppProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </BrowserRouter>
   );
 }

@@ -84,6 +84,11 @@ def save_session(
 def create_session(session_id: str | None = None, user_id: str | None = None) -> str:
     """Create an empty session document if it does not already exist."""
     resolved_session_id = get_or_create_session_id(session_id)
+    existing = sessions_col.find_one({"session_id": resolved_session_id}, {"_id": 1})
+    if existing:
+        db_logger.info(f"[DB] Session {resolved_session_id} already exists, reusing existing document")
+        return resolved_session_id
+
     db_logger.info(f"[DB] Creating session {resolved_session_id} for user {user_id}")
     save_session(
         session_id=resolved_session_id,

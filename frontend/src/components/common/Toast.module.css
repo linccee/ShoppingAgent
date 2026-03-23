@@ -1,0 +1,267 @@
+/* ============================================
+   Toast 容器 - 四个位置
+   ============================================ */
+.toastContainer {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toastContainerTopRight {
+  top: 16px;
+  right: 16px;
+}
+
+.toastContainerTopLeft {
+  top: 16px;
+  left: 16px;
+}
+
+.toastContainerBottomRight {
+  bottom: 16px;
+  right: 16px;
+}
+
+.toastContainerBottomLeft {
+  bottom: 16px;
+  left: 16px;
+}
+
+/* ============================================
+   Toast 基础样式
+   ============================================ */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  padding-bottom: 18px; /* 为进度条留空间 */
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  max-width: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================
+   进度条
+   ============================================ */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  animation: shrink linear forwards;
+}
+
+/* ============================================
+   闪烁动画 - 剩余 2 秒时触发
+   ============================================ */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.toastBlinking {
+  animation: blink 0.5s ease-in-out infinite;
+}
+
+/* ============================================
+   4 个方向的滑入/滑出动画
+   ============================================ */
+
+/* 从右滑入 */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* 从左滑入 */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+}
+
+/* 从下往上滑入 */
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+}
+
+/* 从上往下滑入 */
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToTop {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   位置对应的动画类
+   ============================================ */
+.slideInRight {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.slideOutRight {
+  animation: slideOutToRight 0.3s ease-in forwards;
+}
+
+.slideInLeft {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.slideOutLeft {
+  animation: slideOutToLeft 0.3s ease-in forwards;
+}
+
+.slideInBottom {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.slideOutBottom {
+  animation: slideOutToBottom 0.3s ease-in forwards;
+}
+
+.slideInTop {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.slideOutTop {
+  animation: slideOutToTop 0.3s ease-in forwards;
+}
+
+/* ============================================
+   图标样式
+   ============================================ */
+.toastIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   消息文本
+   ============================================ */
+.toastMessage {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ============================================
+   关闭按钮
+   ============================================ */
+.toastClose {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  color: inherit;
+}
+
+.toastClose:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   Toast 类型颜色
+   ============================================ */
+.toastSuccess {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.toastError {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.toastWarning {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.toastInfo {
+  background: #3b82f6;
+  color: #ffffff;
+}

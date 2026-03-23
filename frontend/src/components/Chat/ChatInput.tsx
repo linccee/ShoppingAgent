@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
 
 import { Button } from '../common/Button';
 import styles from './ChatInput.module.css';
@@ -21,14 +21,27 @@ export function ChatInput({ isStreaming, isStopping, onSubmit, onStop }: ChatInp
   const [value, setValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitValue = () => {
     const trimmed = value.trim();
     if (!trimmed || isStreaming) {
       return;
     }
     onSubmit(trimmed);
     setValue('');
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitValue();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    submitValue();
   };
 
   return (
@@ -50,6 +63,7 @@ export function ChatInput({ isStreaming, isStopping, onSubmit, onStop }: ChatInp
         className={styles.textarea}
         value={value}
         onChange={(event) => setValue(event.target.value)}
+        onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         rows={1}

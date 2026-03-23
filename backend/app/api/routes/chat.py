@@ -38,7 +38,11 @@ def stream_chat(
     def event_generator() -> Generator[str, None, None]:
         current_session_id = request.session_id or ""
         try:
-            for event_type, data in agent_service.stream(request.message, request.session_id):
+            for event_type, data in agent_service.stream(
+                request.message,
+                request.session_id,
+                user_id=current_user["id"],
+            ):
                 if event_type == "session":
                     current_session_id = data["session_id"]
                     chat_logger.info(f"[CHAT] Session established: {current_session_id}")

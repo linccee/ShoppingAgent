@@ -5,6 +5,7 @@ import threading
 from typing import Generator
 
 from backend.agent.agent_core import create_shopping_agent, stream_agent
+from backend.agent.tool_output_compressor import compress_tool_output
 from backend.app.services.session_service import SessionService
 from backend.app.utils.logging_config import agent_logger
 
@@ -46,11 +47,19 @@ class AgentService:
         self,
         message: str,
         session_id: str | None = None,
+        user_id: str | None = None,
     ) -> Generator[tuple[str, object], None, None]:
         """Stream agent events and persist the session transcript."""
         agent_logger.info(f"[AGENT] Starting stream for message={message[:50]}..., session_id={session_id}")
-        resolved_session_id = self._session_service.create(session_id)
-        session = self._session_service.get(resolved_session_id)
+        resolved_session_id = self._session_service.create(session_id, user_id=user_id)
+        session = (
+            self._session_service.get_for_user(resolved_session_id, user_id)
+            if user_id
+            else self._session_service.get(resolved_session_id)
+        )
+        if user_id and session.created_at is None:
+            raise ValueError("Session not found")
+
         messages = list(session.messages)
         total_input_tokens = session.input_tokens
         total_output_tokens = session.output_tokens
@@ -99,9 +108,10 @@ class AgentService:
 
                 yield (kind, data)
         finally:
+            compressed_messages = _compress_messages(messages)
             self._session_service.save(
                 session_id=resolved_session_id,
-                messages=messages,
+                messages=compressed_messages,
                 input_tokens=total_input_tokens,
                 output_tokens=total_output_tokens,
             )
@@ -111,3 +121,25 @@ class AgentService:
         if not stopped:
             agent_logger.info(f"[AGENT] Stream completed for session {resolved_session_id}")
             yield ("done", {"message": "completed"})
+
+
+# ─── Tool Output Compression ─────────────────────────────────────────────────
+
+def _compress_tool_output(tool_name: str, raw_output: str) -> str:
+    """按工具类型压缩冗余字段，保留关键信息用于 session 持久化。"""
+    return compress_tool_output(tool_name, raw_output, force_json=False)
+
+
+def _compress_messages(messages: list[dict]) -> list[dict]:
+    """遍历消息列表，对 assistant 消息中的 tool steps 进行压缩。"""
+    result = []
+    for msg in messages:
+        msg = dict(msg)
+        if msg.get("role") == "assistant" and msg.get("steps"):
+            for step in msg["steps"]:
+                if step.get("type") == "tool":
+                    step["output"] = _compress_tool_output(
+                        step.get("tool", ""), step.get("output", "")
+                    )
+        result.append(msg)
+    return result

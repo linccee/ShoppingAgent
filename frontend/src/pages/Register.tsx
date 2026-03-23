@@ -19,7 +19,7 @@ const passwordRequirements: PasswordRequirement[] = [
   { label: '包含大写字母', test: (pwd) => /[A-Z]/.test(pwd) },
   { label: '包含小写字母', test: (pwd) => /[a-z]/.test(pwd) },
   { label: '包含数字', test: (pwd) => /\d/.test(pwd) },
-  { label: '包含特殊字符', test: (pwd) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd) },
+  { label: '包含特殊字符', test: (pwd) => /[^A-Za-z0-9]/.test(pwd) },
 ];
 
 export default function Register() {
