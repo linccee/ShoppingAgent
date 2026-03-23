@@ -19,7 +19,8 @@ def search_products(query: str) -> str:
                注意：禁止在 query 中添加年份、日期或时间范围（如 2024、2025），直接使用核心关键词即可。
 
     返回：
-        JSON 格式的商品列表，包含名称、价格、评分、链接、平台、评价数量
+        JSON 格式的候选商品列表，仅保留后续工具调用所需的最小字段：
+        title、platform、product_sku
     """
     import serpapi
 
@@ -127,11 +128,6 @@ def search_products(query: str) -> str:
             continue
         platform_count[platform] = count + 1
 
-        # 提取价格信息
-        price = _extract_price_from_serp(result)
-        rating = _extract_rating_from_serp(result)
-        reviews = _extract_reviews_from_serp(result)
-
         # 提取 product_sku (eBay: product_id, Amazon: asin)
         product_sku = None
         if platform.lower() == "ebay":
@@ -139,12 +135,12 @@ def search_products(query: str) -> str:
         elif platform.lower() == "amazon":
             product_sku = result.get("asin")
 
+        # 只保留后续 prices / analyze_reviews 所需的候选项。
+        if not product_sku:
+            continue
+
         structured_results.append({
             "title": title,
-            "url": url,
-            "price": price,
-            "rating": rating,
-            "reviews": reviews,
             "platform": platform,
             "product_sku": product_sku
         })

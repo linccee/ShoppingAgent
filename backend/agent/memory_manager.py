@@ -5,6 +5,7 @@
 因此压缩和读取都基于完整对话轮次处理，而不是按消息条数切片。
 """
 import logging
+import os
 from typing import Sequence
 
 from langchain_core.language_models import BaseChatModel
@@ -19,29 +20,40 @@ class InvalidCompressedHistoryError(ValueError):
     """压缩历史不满足 LangChain / OpenAI 工具调用序列约束。"""
 
 
+def _rough_count_tokens(text: str) -> int:
+    """在 tiktoken 不可用时使用保守估算，避免网络或缓存问题中断请求。"""
+    chinese_chars = sum(1 for c in text if "\u4e00" <= c <= "\u9fff")
+    other_chars = len(text) - chinese_chars
+    return int(chinese_chars * 1.5 + other_chars * 0.25)
+
+
+def _ensure_tiktoken_cache_dir() -> None:
+    os.environ.setdefault("TIKTOKEN_CACHE_DIR", Config.TIKTOKEN_CACHE_DIR)
+    os.makedirs(Config.TIKTOKEN_CACHE_DIR, exist_ok=True)
+
+
 def count_tokens(text: str, model: str = "cl100k_base") -> int:
     """
     估算文本的 token 数量。
     使用 tiktoken（OpenAI 官方）进行准确计量。
     """
     try:
+        _ensure_tiktoken_cache_dir()
         import tiktoken
 
         encoding = encoding_for_model(model)
         return len(encoding.encode(text))
     except ImportError:
-        # 回退：简单估算（中文字符约 1.5 tokens/字符，英文约 0.25 tokens/字符）
         _log.warning("tiktoken not installed, using rough estimation")
-        chinese_chars = sum(1 for c in text if "\u4e00" <= c <= "\u9fff")
-        other_chars = len(text) - chinese_chars
-        return int(chinese_chars * 1.5 + other_chars * 0.25)
-    except KeyError:
-        encoding = encoding_for_model("cl100k_base")
-        return len(encoding.encode(text))
+        return _rough_count_tokens(text)
+    except Exception as exc:
+        _log.warning("tiktoken unavailable or cache missing, using rough estimation: %s", exc)
+        return _rough_count_tokens(text)
 
 
 def encoding_for_model(model: str):
     """获取指定模型的编码器，回退到 cl100k_base"""
+    _ensure_tiktoken_cache_dir()
     import tiktoken
 
     try:
@@ -274,6 +286,37 @@ def _split_prefix_and_turns(messages: Sequence[BaseMessage]) -> tuple[list[BaseM
     return prefix, turns
 
 
+def _select_recent_turns_by_token_budget(
+    turns: Sequence[list[BaseMessage]],
+    token_budget: int,
+) -> tuple[list[list[BaseMessage]], list[list[BaseMessage]]]:
+    """
+    按 token 预算保留最近轮次，但始终完整保留最新一轮。
+
+    返回：
+        (older_turns, recent_turns)
+    """
+    if not turns:
+        return [], []
+
+    selected_reversed: list[list[BaseMessage]] = []
+    for turn in reversed(turns):
+        if not selected_reversed:
+            selected_reversed.append(turn)
+            continue
+
+        candidate_turns = [turn, *list(reversed(selected_reversed))]
+        candidate_messages = [msg for candidate_turn in candidate_turns for msg in candidate_turn]
+        if count_messages_tokens(candidate_messages) <= token_budget:
+            selected_reversed.append(turn)
+        else:
+            break
+
+    recent_turns = list(reversed(selected_reversed))
+    older_turns = list(turns[:-len(recent_turns)]) if recent_turns else list(turns)
+    return older_turns, recent_turns
+
+
 def compress_history(
     messages: Sequence[BaseMessage],
     threshold: int = Config.COMPRESSION_THRESHOLD,
@@ -294,13 +337,13 @@ def compress_history(
         return list(messages)
 
     prefix, turns = _split_prefix_and_turns(messages)
-    keep_turn_count = Config.RECENT_TURNS_TO_KEEP
-
-    if len(turns) <= keep_turn_count:
+    if not turns:
         return list(messages)
 
-    older_turns = turns[:-keep_turn_count]
-    recent_turns = turns[-keep_turn_count:]
+    older_turns, recent_turns = _select_recent_turns_by_token_budget(
+        turns,
+        Config.RECENT_HISTORY_TOKEN_BUDGET,
+    )
     older_messages = [msg for turn in older_turns for msg in turn]
 
     if not older_messages or llm is None:

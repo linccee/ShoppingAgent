@@ -28,6 +28,48 @@ describe('ChatInput', () => {
     expect(screen.getByRole('textbox')).toHaveValue('');
   });
 
+  it('submits when pressing Enter', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(
+      <ChatInput
+        isStreaming={false}
+        isStopping={false}
+        onSubmit={onSubmit}
+        onStop={vi.fn()}
+      />,
+    );
+
+    const textbox = screen.getByRole('textbox');
+    await user.type(textbox, '帮我选一台适合出差的笔记本{enter}');
+
+    expect(onSubmit).toHaveBeenCalledWith('帮我选一台适合出差的笔记本');
+    expect(textbox).toHaveValue('');
+  });
+
+  it('inserts a newline when pressing Shift+Enter', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+
+    render(
+      <ChatInput
+        isStreaming={false}
+        isStopping={false}
+        onSubmit={onSubmit}
+        onStop={vi.fn()}
+      />,
+    );
+
+    const textbox = screen.getByRole('textbox');
+    await user.type(textbox, '第一行');
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
+    await user.type(textbox, '第二行');
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(textbox).toHaveValue('第一行\n第二行');
+  });
+
   it('switches into stop mode while streaming', () => {
     render(
       <ChatInput

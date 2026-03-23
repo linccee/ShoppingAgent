@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -6,6 +7,8 @@ load_dotenv()
 
 
 class Config:
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    BACKEND_DIR = PROJECT_ROOT / "backend"
 
     # —— 主模型配置 ——
     API_KEY = os.getenv("LLM_API_KEY") or os.getenv("api_key")
@@ -32,8 +35,17 @@ class Config:
 
     # ── 记忆压缩配置 ──
     ENABLE_MEMORY_COMPRESSION = True   # 是否启用记忆压缩
-    COMPRESSION_THRESHOLD = 3000        # 超过此 token 数时触发压缩
-    RECENT_TURNS_TO_KEEP = 2            # 保留最近2轮完整对话
+    COMPRESSION_THRESHOLD = 1500       # 超过此 token 数时触发压缩
+    RECENT_HISTORY_TOKEN_BUDGET = 1500 # 最近消息保留的 token 预算
+    RECENT_TURNS_TO_KEEP = 2           # 兼容旧配置；当前 recent 保留策略已改为 token 预算
+    _raw_tiktoken_cache_dir = os.getenv("TIKTOKEN_CACHE_DIR", "")
+    if _raw_tiktoken_cache_dir:
+        _resolved_tiktoken_cache_dir = Path(_raw_tiktoken_cache_dir).expanduser()
+        if not _resolved_tiktoken_cache_dir.is_absolute():
+            _resolved_tiktoken_cache_dir = (PROJECT_ROOT / _resolved_tiktoken_cache_dir).resolve()
+    else:
+        _resolved_tiktoken_cache_dir = (BACKEND_DIR / "tiktoken-cache").resolve()
+    TIKTOKEN_CACHE_DIR = str(_resolved_tiktoken_cache_dir)
 
     MONGO_URI = os.getenv("MONGO_URI")
 
@@ -46,7 +58,7 @@ class Config:
     # ── JWT配置 ──
     JWT_SECRET = os.getenv("JWT_SECRET")
     JWT_ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_DAYS = 7
+    ACCESS_TOKEN_EXPIRE_DAYS = 1
 
     # ── 密码策略 ──
     PASSWORD_MIN_LENGTH = 8

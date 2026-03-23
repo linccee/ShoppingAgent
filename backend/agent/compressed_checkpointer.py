@@ -24,6 +24,7 @@ from backend.agent.memory_manager import (
     count_messages_tokens,
     validate_message_history,
 )
+from backend.agent.tool_output_compressor import compress_tool_messages
 from backend.app.config import Config
 from backend.utils.db import load_compressed_state, save_compressed_state
 
@@ -307,10 +308,13 @@ class CompressedCheckpointer(BaseCheckpointSaver):
         thread_id = config.get("configurable", {}).get("thread_id", "default")
         source_checkpoint_id = self._make_source_checkpoint_id()
 
-        result_config = self._saver.put(config, checkpoint, metadata, new_versions)
-
         channel_values = checkpoint.get("channel_values") if checkpoint else None
-        messages = list(channel_values.get("messages", [])) if channel_values and "messages" in channel_values else []
+        raw_messages = list(channel_values.get("messages", [])) if channel_values and "messages" in channel_values else []
+
+        messages = compress_tool_messages(raw_messages, force_json=True)
+        patched_checkpoint = _replace_checkpoint_messages(checkpoint, messages) if checkpoint else checkpoint
+
+        result_config = self._saver.put(config, patched_checkpoint, metadata, new_versions)
 
         if not messages:
             _persist_state(thread_id, source_checkpoint_id, [], "ready", None)

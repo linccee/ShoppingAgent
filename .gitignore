@@ -22,6 +22,7 @@ venv.bak/
 .vscode/
 *.swp
 *.swo
+AGENTS.md
 
 # MacOS
 .DS_Store
@@ -42,3 +43,7 @@ test/
 # frontend
 frontend/node_modules/
 frontend/dist/
+
+# local tiktoken cache
+backend/tiktoken-cache/*
+!backend/tiktoken-cache/.gitkeep

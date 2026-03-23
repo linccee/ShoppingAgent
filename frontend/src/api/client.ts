@@ -58,11 +58,11 @@ class APIClient {
     return this.client.get<T>(url, { params });
   }
 
-  post<T>(url: string, data?: Record<string, unknown>) {
+  post<T>(url: string, data?: unknown) {
     return this.client.post<T>(url, data);
   }
 
-  put<T>(url: string, data?: Record<string, unknown>) {
+  put<T>(url: string, data?: unknown) {
     return this.client.put<T>(url, data);
   }
 

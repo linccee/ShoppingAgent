@@ -105,8 +105,14 @@ export function Sidebar({
             <span className={styles.userName}>{user?.username}</span>
             <Link to="/profile" className={styles.profileLink}>设置</Link>
           </div>
-          <button onClick={logout} className={styles.logoutBtn} title="退出登录">
-            ↩
+          <button
+            type="button"
+            onClick={logout}
+            className={styles.logoutBtn}
+            title="退出登录"
+            aria-label="退出登录"
+          >
+            登出
           </button>
         </div>
       </section>

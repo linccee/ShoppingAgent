@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/common/Button';
 import { useAuth } from '../context/AuthContext';
 import { userApi, UserPreferences } from '../api/user';
 import styles from './Profile.module.css';
@@ -57,7 +58,17 @@ export default function Profile() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>个人设置</h1>
+        <div className={styles.header}>
+          <Button
+            type="button"
+            variant="ghost"
+            className={styles.backButton}
+            onClick={() => navigate('/chat')}
+          >
+            返回聊天
+          </Button>
+          <h1 className={styles.title}>个人设置</h1>
+        </div>
 
         {message && (
           <div className={message.includes('成功') ? styles.success : styles.error}>
