@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from './Button';
 import styles from './ConfirmDialog.module.css';
@@ -19,12 +20,15 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
-  cancelLabel = '取消',
+  cancelLabel,
   isProcessing = false,
   error = null,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation('common');
+  const defaultCancelLabel = cancelLabel ?? t('confirmDialog.cancel');
+
   useEffect(() => {
     const { overflow } = document.body.style;
     document.body.style.overflow = 'hidden';
@@ -44,7 +48,7 @@ export function ConfirmDialog({
         aria-describedby="confirm-dialog-description"
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="eyebrow">删除确认</p>
+        <p className="eyebrow">{t('confirmDialog.eyebrow')}</p>
         <h2 id="confirm-dialog-title" className={styles.title}>
           {title}
         </h2>
@@ -54,10 +58,10 @@ export function ConfirmDialog({
         {error ? <p className={styles.error}>{error}</p> : null}
         <div className={styles.actions}>
           <Button variant="ghost" onClick={onCancel} disabled={isProcessing}>
-            {cancelLabel}
+            {defaultCancelLabel}
           </Button>
           <Button variant="danger" onClick={onConfirm} disabled={isProcessing}>
-            {isProcessing ? '删除中...' : confirmLabel}
+            {isProcessing ? t('confirmDialog.deleting') : confirmLabel}
           </Button>
         </div>
       </div>

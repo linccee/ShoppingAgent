@@ -9,12 +9,16 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  browser_language?: string;
 }
 
 export interface User {
   id: string;
   username: string;
   email: string;
+  preferences?: {
+    language_preference?: string;
+  };
 }
 
 export interface AuthResponse {

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './Toast.module.css';
 
 /**
@@ -139,6 +140,7 @@ const ToastItem: React.FC<{
   item: ToastItem;
   onRemove: (id: string) => void;
 }> = ({ item, onRemove }) => {
+  const { t } = useTranslation('common');
   const { type, message, duration = DEFAULT_DURATION, id, exiting, position = DEFAULT_POSITION, createdAt } = item;
 
   const [remaining, setRemaining] = useState(duration > 0 ? duration : DEFAULT_DURATION);
@@ -209,7 +211,7 @@ const ToastItem: React.FC<{
       <button
         className={styles.toastClose}
         onClick={() => onRemove(id)}
-        aria-label="关闭"
+        aria-label={t('toast.close')}
       >
         <CloseIcon />
       </button>

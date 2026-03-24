@@ -1,0 +1,25 @@
+{
+  "loading": "Loading...",
+  "back": "Back to Chat",
+  "title": "Settings",
+  "account": {
+    "title": "Account",
+    "username": "Username",
+    "email": "Email"
+  },
+  "preferences": {
+    "title": "Preferences",
+    "language": {
+      "label": "Interface Language",
+      "auto": "Auto (follow browser)",
+      "description": "When set to Auto, the system will automatically switch the interface language based on your browser's language settings."
+    },
+    "currency": "Default Currency",
+    "notification": "Enable Notifications",
+    "save": "Save Settings",
+    "saving": "Saving...",
+    "saveSuccess": "Saved successfully",
+    "saveError": "Save failed"
+  },
+  "logout": "Logout"
+}

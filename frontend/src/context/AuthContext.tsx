@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authApi, User } from '../api/auth';
+import { useLanguage } from './LanguageContext';
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser) as User;
+        setUser(parsedUser);
       } catch {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
@@ -34,6 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsLoading(false);
   }, []);
+
+  const { syncFromBackend } = useLanguage();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const login = async (username: string, password: string) => {
     const response = await authApi.login({ username, password });
@@ -44,10 +49,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setToken(access_token);
     setUser(userData);
+
+    // Sync language preference from backend
+    syncFromBackend(userData.preferences?.language_preference);
+    setIsLoaded(true);
   };
 
   const register = async (username: string, email: string, password: string) => {
-    await authApi.register({ username, email, password });
+    await authApi.register({
+      username,
+      email,
+      password,
+      browser_language: navigator.language,
+    });
   };
 
   const logout = () => {

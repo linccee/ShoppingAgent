@@ -36,6 +36,7 @@ def register(user_data: UserCreate) -> RegisterResponse:
         user_data.username,
         user_data.email,
         user_data.password,
+        user_data.browser_language,
     )
 
     if not success:

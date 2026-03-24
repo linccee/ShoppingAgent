@@ -1,11 +1,13 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { Toast } from '../components/common/Toast';
 import { Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { logger } from '../utils/logger';
 
 export default function Login() {
+  const { t } = useTranslation('auth');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,13 +26,13 @@ export default function Login() {
       logger.info('Login', `Login attempt for user: ${username}`);
       await login(username, password);
       logger.info('Login', `Login successful for user: ${username}`);
-      Toast.success('登录成功', 2500);
+      Toast.success(t('login.success'), 2500);
       navigate('/chat');
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { detail?: { message?: string } } } };
       const message =
         axiosError.response?.data?.detail?.message ||
-        '登录失败，请重试';
+        t('login.error');
       logger.error('Login', `Login failed for user: ${username}`, message);
       setError(message);
     } finally {
@@ -93,10 +95,10 @@ export default function Login() {
         {/* 表单头部 */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-500">
-            欢迎回来
+            {t('login.title')}
           </h2>
           <p className="text-slate-500 mt-2 text-sm">
-            请输入您的凭据以进入系统
+            {t('login.subtitle')}
           </p>
         </div>
 
@@ -119,7 +121,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="block w-full pl-11 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm"
-              placeholder="用户名"
+              placeholder={t('login.username')}
               required
             />
           </div>
@@ -135,7 +137,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="block w-full pl-11 pr-12 py-3 bg-white/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm"
-              placeholder="密码"
+              placeholder={t('login.password')}
               required
             />
             <button
@@ -150,7 +152,7 @@ export default function Login() {
           {/* 忘记密码 */}
           <div className="flex justify-end">
             <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500 transition-colors">
-              忘记密码？
+              {t('login.forgotPassword')}
             </a>
           </div>
 
@@ -160,16 +162,16 @@ export default function Login() {
             disabled={isLoading}
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-multi-gradient animate-gradient-flow hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-indigo-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
           >
-            {isLoading ? '登录中...' : '登 录'}
+            {isLoading ? t('login.submitting') : t('login.submit')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </button>
         </form>
 
         {/* 底部链接 */}
         <p className="mt-6 text-center text-sm text-slate-500">
-          还没有账号？{' '}
+          {t('login.noAccount')}{' '}
           <Link to="/register" className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors">
-            立即注册
+            {t('login.registerNow')}
           </Link>
         </p>
       </div>

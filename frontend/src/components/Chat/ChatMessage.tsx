@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ChatTimeline } from './ChatTimeline';
 import { MarkdownContent } from './MarkdownContent';
 import styles from './ChatMessage.module.css';
@@ -9,8 +10,9 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message, isStreamingMessage }: ChatMessageProps) {
+  const { t } = useTranslation('chat');
   const isAssistant = message.role === 'assistant';
-  const content = message.content || (isStreamingMessage ? '思考中...' : '');
+  const content = message.content || (isStreamingMessage ? t('message.thinking') : '');
 
   return (
     <article

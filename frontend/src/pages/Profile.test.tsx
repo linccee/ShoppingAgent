@@ -3,6 +3,30 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { LanguageProvider } from '../context/LanguageContext';
+
+const localStorageMock = {
+  getItem: vi.fn().mockReturnValue('auto'),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+vi.stubGlobal('localStorage', localStorageMock);
+
+vi.mock('react-i18next', async () => {
+  const actual = await vi.importActual<typeof import('react-i18next')>('react-i18next');
+  return {
+    ...actual,
+    useTranslation: (ns?: string) => ({
+      ...actual!.useTranslation(ns),
+      i18n: {
+        language: 'zh-CN',
+        changeLanguage: vi.fn().mockResolvedValue(undefined),
+      },
+    }),
+  };
+});
+
 const {
   navigateMock,
   logoutMock,
@@ -65,12 +89,16 @@ describe('Profile', () => {
 
     render(
       <MemoryRouter>
-        <Profile />
+        <LanguageProvider>
+          <Profile />
+        </LanguageProvider>
       </MemoryRouter>,
     );
 
+    // The heading renders using i18n translation keys in the test environment
     expect(await screen.findByRole('heading', { name: '个人设置' })).toBeInTheDocument();
 
+    // The back button renders using i18n translation keys in the test environment
     await user.click(screen.getByRole('button', { name: '返回聊天' }));
 
     expect(navigateMock).toHaveBeenCalledWith('/chat');

@@ -1,0 +1,25 @@
+{
+  "loading": "正在准备界面...",
+  "booting": "正在唤醒镜澜导购...",
+  "privateRouteLoading": "加载中...",
+  "languageSwitcher": {
+    "title": "切换语言"
+  },
+  "toast": {
+    "success": "成功",
+    "error": "错误",
+    "warning": "警告",
+    "info": "提示",
+    "close": "关闭"
+  },
+  "confirmDialog": {
+    "eyebrow": "删除确认",
+    "cancel": "取消",
+    "deleting": "删除中..."
+  },
+  "errors": {
+    "generic": "出错了，请重试",
+    "networkError": "网络错误，请检查连接",
+    "unauthorized": "未授权，请重新登录"
+  }
+}

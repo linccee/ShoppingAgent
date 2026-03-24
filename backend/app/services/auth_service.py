@@ -35,7 +35,13 @@ class AuthService:
 
         return True, ""
 
-    def register(self, username: str, email: str, password: str) -> tuple[bool, str, str | None]:
+    def register(
+        self,
+        username: str,
+        email: str,
+        password: str,
+        browser_language: str | None = None,
+    ) -> tuple[bool, str, str | None]:
         """
         Register a new user.
         Returns (success, error_code, user_id).
@@ -57,6 +63,17 @@ class AuthService:
             auth_logger.warning(f"[AUTH] Registration failed for {username}: email exists")
             return False, "AUTH_USER_EXISTS", None
 
+        # Determine language preference from browser language
+        SUPPORTED_LANGS = {"zh-CN", "zh", "en-US", "en", "en-GB"}
+        lang_pref = "auto"
+        if browser_language:
+            if browser_language in SUPPORTED_LANGS:
+                lang_pref = "zh-CN" if browser_language.startswith("zh") else "en-US"
+            elif browser_language.startswith("zh"):
+                lang_pref = "zh-CN"
+            elif browser_language.startswith("en"):
+                lang_pref = "en-US"
+
         # Create user
         now = datetime.now(timezone.utc)
         user_doc = {
@@ -73,6 +90,7 @@ class AuthService:
                 "favorite_platforms": [],
                 "budget_range": {"min": 0, "max": 0},
                 "notification_enabled": False,
+                "language_preference": lang_pref,
             },
         }
 

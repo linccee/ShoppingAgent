@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { ToastProvider } from './components/common/Toast';
+import { LanguageSwitcher } from './components/common/LanguageSwitcher';
 import { useAppState } from './context/useAppStore';
 import { useSessions } from './hooks/useSessions';
 import { useChat } from './hooks/useChat';
@@ -28,7 +30,7 @@ function Shell() {
   }, [initializeApp]);
 
   if (state.isBootstrapping) {
-    return <Loading label="正在唤醒镜澜导购..." />;
+    return <Loading />;
   }
 
   return (
@@ -49,6 +51,8 @@ function Shell() {
       />
 
       <main className={styles.main}>
+        <LanguageSwitcher />
+
         <Hero
           showPrompts={state.messages.length === 0}
           onPromptSelect={(prompt) => void sendMessage(prompt)}
@@ -85,22 +89,24 @@ export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <AuthProvider>
-          <AppProvider>
-            <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+        <LanguageProvider>
+          <AuthProvider>
+            <AppProvider>
+              <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            <Route element={<PrivateRoute />}>
-              <Route path="/chat" element={<Shell />} />
-              <Route path="/profile" element={<Profile />} />
-            </Route>
+              <Route element={<PrivateRoute />}>
+                <Route path="/chat" element={<Shell />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
 
-            <Route path="/" element={<Navigate to="/chat" replace />} />
-          </Routes>
-              </AppProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </BrowserRouter>
+              <Route path="/" element={<Navigate to="/chat" replace />} />
+            </Routes>
+            </AppProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ToastProvider>
+    </BrowserRouter>
   );
 }

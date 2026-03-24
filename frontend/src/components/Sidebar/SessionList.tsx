@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from './SessionList.module.css';
 import type { SessionSummary } from '../../types';
 
@@ -9,12 +10,12 @@ interface SessionListProps {
   isBusy: boolean;
 }
 
-function formatTime(value: string | null): string {
+function formatTime(value: string | null, unknownTimeLabel: string, locale: string): string {
   if (!value) {
-    return '未知时间';
+    return unknownTimeLabel;
   }
 
-  return new Intl.DateTimeFormat('zh-CN', {
+  return new Intl.DateTimeFormat(locale, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -29,8 +30,11 @@ export function SessionList({
   onRequestDelete,
   isBusy,
 }: SessionListProps) {
+  const { t, i18n } = useTranslation('sidebar');
+  const locale = i18n.language;
+
   if (sessions.length === 0) {
-    return <p className={styles.empty}>还没有历史会话。</p>;
+    return <p className={styles.empty}>{t('history.empty')}</p>;
   }
 
   return (
@@ -51,16 +55,18 @@ export function SessionList({
             disabled={isBusy}
           >
             <span className={styles.title}>{session.title}</span>
-            <span className={styles.meta}>最近更新 · {formatTime(session.updated_at)}</span>
+            <span className={styles.meta}>
+              {t('history.lastUpdate')} · {formatTime(session.updated_at, t('history.unknownTime'), locale)}
+            </span>
           </button>
           <button
             type="button"
             className={styles.deleteButton}
-            aria-label={`删除会话 ${session.title}`}
+            aria-label={t('history.delete')}
             onClick={() => onRequestDelete(session)}
             disabled={isBusy}
           >
-            删除
+            {t('history.delete')}
           </button>
         </article>
       ))}

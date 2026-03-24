@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../context/AuthContext';
-import { userApi, UserPreferences } from '../api/user';
+import { useLanguage } from '../context/LanguageContext';
+import { userApi, UserPreferences, type LanguagePreference } from '../api/user';
+import { LANGUAGE_OPTIONS } from '../i18n/constants';
 import styles from './Profile.module.css';
 
 export default function Profile() {
+  const { t } = useTranslation('profile');
   const { user, logout } = useAuth();
+  const { language: currentLang } = useLanguage();
   const navigate = useNavigate();
 
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -14,23 +19,32 @@ export default function Profile() {
     favorite_platforms: [],
     budget_range: { min: 0, max: 0 },
     notification_enabled: false,
+    language_preference: 'auto',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const response = await userApi.getCurrentUser();
-        setPreferences(response.data.preferences);
+        const prefs = response.data.preferences;
+        setPreferences({
+          default_currency: prefs.default_currency,
+          favorite_platforms: prefs.favorite_platforms,
+          budget_range: prefs.budget_range,
+          notification_enabled: prefs.notification_enabled,
+          language_preference: prefs.language_preference ?? 'auto',
+        });
       } catch {
         // Ignore errors
       } finally {
         setIsLoading(false);
       }
     };
-    loadUser();
+    void loadUser();
   }, []);
 
   const handleSave = async () => {
@@ -38,9 +52,11 @@ export default function Profile() {
     setMessage('');
     try {
       await userApi.updatePreferences(preferences);
-      setMessage('保存成功');
+      setMessageType('success');
+      setMessage(t('preferences.saveSuccess'));
     } catch {
-      setMessage('保存失败');
+      setMessageType('error');
+      setMessage(t('preferences.saveError'));
     } finally {
       setIsSaving(false);
     }
@@ -52,7 +68,7 @@ export default function Profile() {
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>加载中...</div>;
+    return <div className={styles.loading}>{t('loading')}</div>;
   }
 
   return (
@@ -65,36 +81,61 @@ export default function Profile() {
             className={styles.backButton}
             onClick={() => navigate('/chat')}
           >
-            返回聊天
+            {t('back')}
           </Button>
-          <h1 className={styles.title}>个人设置</h1>
+          <h1 className={styles.title}>{t('title')}</h1>
         </div>
 
         {message && (
-          <div className={message.includes('成功') ? styles.success : styles.error}>
+          <div className={messageType === 'success' ? styles.success : styles.error}>
             {message}
           </div>
         )}
 
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>账户信息</h2>
+          <h2 className={styles.sectionTitle}>{t('account.title')}</h2>
           <div className={styles.info}>
             <div className={styles.infoRow}>
-              <span className={styles.label}>用户名</span>
+              <span className={styles.label}>{t('account.username')}</span>
               <span className={styles.value}>{user?.username}</span>
             </div>
             <div className={styles.infoRow}>
-              <span className={styles.label}>邮箱</span>
+              <span className={styles.label}>{t('account.email')}</span>
               <span className={styles.value}>{user?.email}</span>
             </div>
           </div>
         </div>
 
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>偏好设置</h2>
+          <h2 className={styles.sectionTitle}>{t('preferences.title')}</h2>
 
+          {/* 语言偏好 */}
           <div className={styles.field}>
-            <label htmlFor="currency">默认货币</label>
+            <label htmlFor="language">{t('preferences.language.label')}</label>
+            <select
+              id="language"
+              value={preferences.language_preference}
+              onChange={(e) =>
+                setPreferences({
+                  ...preferences,
+                  language_preference: e.target.value as LanguagePreference,
+                })
+              }
+              className={styles.select}
+            >
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.flag} {opt.nativeLabel}
+                  {opt.value === 'auto' && ` (${currentLang === 'zh-CN' ? '中文' : 'EN'})`}
+                </option>
+              ))}
+            </select>
+            <p className={styles.fieldHint}>{t('preferences.language.description')}</p>
+          </div>
+
+          {/* 货币偏好 */}
+          <div className={styles.field}>
+            <label htmlFor="currency">{t('preferences.currency')}</label>
             <select
               id="currency"
               value={preferences.default_currency}
@@ -109,6 +150,7 @@ export default function Profile() {
             </select>
           </div>
 
+          {/* 通知偏好 */}
           <div className={styles.field}>
             <label>
               <input
@@ -121,7 +163,7 @@ export default function Profile() {
                   })
                 }
               />
-              启用通知
+              {t('preferences.notification')}
             </label>
           </div>
 
@@ -130,13 +172,13 @@ export default function Profile() {
             disabled={isSaving}
             className={styles.button}
           >
-            {isSaving ? '保存中...' : '保存设置'}
+            {isSaving ? t('preferences.saving') : t('preferences.save')}
           </button>
         </div>
 
         <div className={styles.section}>
           <button onClick={handleLogout} className={styles.logoutButton}>
-            退出登录
+            {t('logout')}
           </button>
         </div>
       </div>

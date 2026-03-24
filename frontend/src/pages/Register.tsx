@@ -1,5 +1,6 @@
 import { useState, FormEvent, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { Toast } from '../components/common/Toast';
 import { Lock, User, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
@@ -15,15 +16,8 @@ interface PasswordRequirement {
   test: (pwd: string) => boolean;
 }
 
-const passwordRequirements: PasswordRequirement[] = [
-  { label: '至少8个字符', test: (pwd) => pwd.length >= 8 },
-  { label: '包含大写字母', test: (pwd) => /[A-Z]/.test(pwd) },
-  { label: '包含小写字母', test: (pwd) => /[a-z]/.test(pwd) },
-  { label: '包含数字', test: (pwd) => /\d/.test(pwd) },
-  { label: '包含特殊字符', test: (pwd) => /[^A-Za-z0-9]/.test(pwd) },
-];
-
 export default function Register() {
+  const { t } = useTranslation('auth');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,10 +31,20 @@ export default function Register() {
   const navigate = useNavigate();
 
   const emailValid = useMemo(() => email.length === 0 || isValidEmail(email), [email]);
+
+  const passwordRequirements: PasswordRequirement[] = useMemo(() => [
+    { label: t('register.passwordRequirements.minLength'), test: (pwd) => pwd.length >= 8 },
+    { label: t('register.passwordRequirements.uppercase'), test: (pwd) => /[A-Z]/.test(pwd) },
+    { label: t('register.passwordRequirements.lowercase'), test: (pwd) => /[a-z]/.test(pwd) },
+    { label: t('register.passwordRequirements.digit'), test: (pwd) => /\d/.test(pwd) },
+    { label: t('register.passwordRequirements.special'), test: (pwd) => /[^A-Za-z0-9]/.test(pwd) },
+  ], [t]);
+
   const passwordChecks = useMemo(() => passwordRequirements.map((req) => ({
     ...req,
     met: req.test(password),
-  })), [password]);
+  })), [passwordRequirements, password]);
+
   const passwordStrength = useMemo(() => {
     const metCount = passwordChecks.filter((c) => c.met).length;
     if (password.length === 0) return 0;
@@ -49,19 +53,21 @@ export default function Register() {
     return 3;
   }, [passwordChecks, password.length]);
 
+  const strengthLabels = ['', t('register.strength.weak'), t('register.strength.medium'), t('register.strength.strong')];
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (password !== confirmPassword) {
       logger.warn('Register', 'Password mismatch');
-      setError('两次输入的密码不一致');
+      setError(t('register.passwordMismatch'));
       return;
     }
 
     if (password.length < 8) {
       logger.warn('Register', 'Password too short');
-      setError('密码长度至少为8个字符');
+      setError(t('register.passwordTooShort'));
       return;
     }
 
@@ -71,13 +77,13 @@ export default function Register() {
       logger.info('Register', `Registration attempt for user: ${username}, email: ${email}`);
       await register(username, email, password);
       logger.info('Register', `Registration successful for user: ${username}`);
-      Toast.success('注册成功，即将跳转到登录页', 2500);
+      Toast.success(t('register.success'), 2500);
       navigate('/login');
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { detail?: { message?: string } } } };
       const message =
         axiosError.response?.data?.detail?.message ||
-        '注册失败，请重试';
+        t('register.error');
       logger.error('Register', `Registration failed for user: ${username}`, message);
       setError(message);
     } finally {
@@ -86,7 +92,6 @@ export default function Register() {
   };
 
   const strengthColors = ['bg-transparent', 'bg-red-400', 'bg-amber-400', 'bg-emerald-400'];
-  const strengthLabels = ['', '弱', '中', '强'];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden font-sans text-slate-800">
@@ -143,10 +148,10 @@ export default function Register() {
         {/* 表单头部 */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-pink-500">
-            创建账号
+            {t('register.title')}
           </h2>
           <p className="text-slate-500 mt-2 text-sm">
-            加入我们，开启一段全新的旅程
+            {t('register.subtitle')}
           </p>
         </div>
 
@@ -169,12 +174,12 @@ export default function Register() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="block w-full pl-11 pr-4 py-3 bg-white/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm"
-              placeholder="用户名"
+              placeholder={t('register.username')}
               minLength={3}
               maxLength={20}
               required
             />
-            <span className="block mt-1 text-xs text-slate-400 ml-1">3-20个字符</span>
+            <span className="block mt-1 text-xs text-slate-400 ml-1">{t('register.usernameHint')}</span>
           </div>
 
           {/* 邮箱输入框 */}
@@ -188,11 +193,11 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={`block w-full pl-11 pr-4 py-3 bg-white/80 border rounded-xl transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm focus:ring-2 focus:ring-indigo-500 ${email && !emailValid ? 'border-red-400 focus:border-red-400 focus:ring-red-400' : 'border-slate-200 focus:border-indigo-500'}`}
-              placeholder="电子邮箱"
+              placeholder={t('register.email')}
               required
             />
             {email && !emailValid && (
-              <span className="block mt-1 text-xs text-red-500 ml-1">请输入有效的邮箱地址</span>
+              <span className="block mt-1 text-xs text-red-500 ml-1">{t('register.emailInvalid')}</span>
             )}
           </div>
 
@@ -207,7 +212,7 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="block w-full pl-11 pr-12 py-3 bg-white/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm"
-              placeholder="密码"
+              placeholder={t('register.password')}
               required
             />
             <button
@@ -257,7 +262,7 @@ export default function Register() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="block w-full pl-11 pr-12 py-3 bg-white/80 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400 text-slate-800 outline-none shadow-sm"
-              placeholder="确认密码"
+              placeholder={t('register.confirmPassword')}
               required
             />
             <button
@@ -275,16 +280,16 @@ export default function Register() {
             disabled={isLoading}
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-multi-gradient animate-gradient-flow hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-indigo-500 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
           >
-            {isLoading ? '注册中...' : '注 册'}
+            {isLoading ? t('register.submitting') : t('register.submit')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </button>
         </form>
 
         {/* 底部链接 */}
         <p className="mt-6 text-center text-sm text-slate-500">
-          已有账号？{' '}
+          {t('register.hasAccount')}{' '}
           <Link to="/login" className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors">
-            立即登录
+            {t('register.loginNow')}
           </Link>
         </p>
       </div>

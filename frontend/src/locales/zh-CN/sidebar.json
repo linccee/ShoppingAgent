@@ -1,0 +1,52 @@
+{
+  "health": {
+    "ok": "后端在线",
+    "degraded": "服务降级",
+    "error": "服务不可达",
+    "loading": "检测中"
+  },
+  "brand": {
+    "title": "镜澜导购",
+    "tagline": "把价格、评论与购买判断，整理成更清晰的结论。"
+  },
+  "userSection": {
+    "settings": "设置",
+    "logout": "登出",
+    "logoutToast": "已退出登录"
+  },
+  "config": {
+    "title": "当前配置",
+    "model": "模型",
+    "notSet": "未设置",
+    "temperature": "温度",
+    "maxTokens": "Max Tokens",
+    "memoryTurns": "记忆轮次",
+    "turnsUnit": "轮"
+  },
+  "overview": {
+    "title": "本轮概览",
+    "questionCount": "提问次数",
+    "toolCalls": "工具调用",
+    "inputTokens": "输入 Token",
+    "outputTokens": "输出 Token"
+  },
+  "actions": {
+    "newSession": "开启新对话",
+    "clearCurrent": "清空当前对话"
+  },
+  "history": {
+    "title": "历史会话",
+    "empty": "还没有历史会话。",
+    "lastUpdate": "最近更新",
+    "unknownTime": "未知时间",
+    "delete": "删除"
+  },
+  "confirmDelete": {
+    "title": "删除「{title}」？",
+    "description": "确认后会同时删除数据库记录、内存中的会话列表缓存，以及浏览器里保存的当前会话标识。这个操作无法撤销。",
+    "confirm": "确认删除",
+    "cancel": "取消",
+    "deleting": "删除中...",
+    "failed": "删除会话失败"
+  }
+}

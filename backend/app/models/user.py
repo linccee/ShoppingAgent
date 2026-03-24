@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=20)
     email: str = Field(..., min_length=5)
     password: str = Field(..., min_length=8)
+    browser_language: str | None = None
 
 
 class UserLogin(BaseModel):
@@ -27,6 +28,7 @@ class UserPreferences(BaseModel):
     favorite_platforms: list[str] = []
     budget_range: dict[str, int] = {"min": 0, "max": 0}
     notification_enabled: bool = False
+    language_preference: str = "auto"
 
 
 class UserResponse(BaseModel):

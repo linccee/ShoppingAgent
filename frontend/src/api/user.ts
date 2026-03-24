@@ -1,10 +1,13 @@
 import api from './client';
 
+export type LanguagePreference = 'auto' | 'zh-CN' | 'en-US';
+
 export interface UserPreferences {
   default_currency: string;
   favorite_platforms: string[];
   budget_range: { min: number; max: number };
   notification_enabled: boolean;
+  language_preference: LanguagePreference;
 }
 
 export interface UserResponse {

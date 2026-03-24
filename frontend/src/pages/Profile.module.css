@@ -167,6 +167,13 @@
   background: #fef2f2;
 }
 
+.fieldHint {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 1rem;

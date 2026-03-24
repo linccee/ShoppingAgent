@@ -1,0 +1,51 @@
+{
+  "input": {
+    "helperLead": "Be clear about budget, use case, and comparison targets for faster, actionable recommendations.",
+    "hints": {
+      "budget": "Budget",
+      "budgetText": "Clear budget range leads to more focused results",
+      "scene": "Use Case",
+      "sceneText": "Commuting, office work, or photography will significantly change recommendations",
+      "compare": "Compare",
+      "compareText": "You can name two models or two platforms directly"
+    },
+    "placeholder": "Describe your shopping goal, e.g.: Help me find noise-cancelling earphones under $300",
+    "send": "Send",
+    "stopping": "Stopping...",
+    "stop": "Stop",
+    "disclaimer": "The agent may make mistakes, please verify important information"
+  },
+  "message": {
+    "thinking": "Thinking..."
+  },
+  "timeline": {
+    "title": "Trace Playback",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "steps": "{count} steps",
+    "toolCall": "Tool Call",
+    "invoke": "Calling {tool}",
+    "completed": "Completed",
+    "processing": "Processing"
+  },
+  "hero": {
+    "eyebrow": "Mirror Curation",
+    "headline": "Turn complex shopping decisions into clear, actionable answers.",
+    "description": "Connects Google Shopping, Amazon, and eBay to compare prices, summarize reviews, and generate purchase recommendations — all in one conversation.",
+    "features": {
+      "priceCompare": "Multi-platform Price Compare",
+      "reviewInsight": "Review Insights",
+      "budgetDecision": "Budget Decision"
+    },
+    "platformNote": "Search results, reviews, and price data are synthesized into an actionable conclusion.",
+    "promptsTitle": "Try These",
+    "promptsHeadline": "From 「I'm looking for something」 to 「Here's what to buy」 — one clear conversation away.",
+    "promptsText": "Tell me your budget, use case, or preferences, and I'll organize platform prices, review signals, and a final recommendation.",
+    "examplePrompts": [
+      "I need commuting noise-cancelling earphones under $300",
+      "Compare 27-inch monitors suitable for both gaming and office work",
+      "I want a phone for video recording under $700",
+      "Which platform is better for buying a PS5 right now?"
+    ]
+  }
+}

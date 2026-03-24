@@ -41,7 +41,7 @@ describe('Sidebar', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('button', { name: '退出登录' })).toHaveTextContent('登出');
+    expect(screen.getByRole('button', { name: '登出' })).toHaveTextContent('登出');
   });
 
   it('confirms session deletion before invoking the removal callback', async () => {
@@ -83,7 +83,7 @@ describe('Sidebar', () => {
     expect(sessionItem).not.toBeNull();
 
     await user.hover(sessionItem!);
-    await user.click(screen.getByRole('button', { name: '删除会话 耳机对比' }));
+    await user.click(screen.getByRole('button', { name: '删除' }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '确认删除' }));

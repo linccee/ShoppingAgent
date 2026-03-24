@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from './ChatTimeline.module.css';
 import type { ToolStep } from '../../types';
@@ -9,6 +10,7 @@ interface ChatTimelineProps {
 }
 
 export function ChatTimeline({ steps, isComplete }: ChatTimelineProps) {
+  const { t } = useTranslation('chat');
   const [isOpen, setIsOpen] = useState(!isComplete);
   const timelineId = useId();
 
@@ -32,12 +34,12 @@ export function ChatTimeline({ steps, isComplete }: ChatTimelineProps) {
         onClick={() => setIsOpen((open) => !open)}
       >
         <div className={styles.label}>
-          <span>轨迹回放</span>
+          <span>{t('timeline.title')}</span>
         </div>
         <div className={styles.controls}>
-          <span className={styles.count}>{steps.length} 步</span>
+          <span className={styles.count}>{t('timeline.steps', { count: steps.length })}</span>
           <span className={styles.toggle}>
-            <span>{isOpen ? '收起' : '展开'}</span>
+            <span>{isOpen ? t('timeline.collapse') : t('timeline.expand')}</span>
             <span className={styles.chevron} />
           </span>
         </div>
@@ -65,10 +67,10 @@ export function ChatTimeline({ steps, isComplete }: ChatTimelineProps) {
                     <div className={styles.header}>
                       <span className={styles.badge}>{String(index + 1).padStart(2, '0')}</span>
                       <div className={styles.meta}>
-                        <span className="eyebrow">工具调用</span>
-                        <strong>调用 {step.tool}</strong>
+                        <span className="eyebrow">{t('timeline.toolCall')}</span>
+                        <strong>{t('timeline.invoke', { tool: step.tool })}</strong>
                       </div>
-                      <span className={styles.status}>{done ? '已完成' : '处理中'}</span>
+                      <span className={styles.status}>{done ? t('timeline.completed') : t('timeline.processing')}</span>
                     </div>
                   </div>
                 </div>

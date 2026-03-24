@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '../common/Button';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -24,19 +25,6 @@ interface SidebarProps {
   onDeleteSession: (sessionId: string) => Promise<void>;
 }
 
-function getHealthLabel(health: HealthState): string {
-  switch (health) {
-    case 'ok':
-      return '后端在线';
-    case 'degraded':
-      return '服务降级';
-    case 'error':
-      return '服务不可达';
-    default:
-      return '检测中';
-  }
-}
-
 export function Sidebar({
   sessions,
   activeSessionId,
@@ -51,6 +39,7 @@ export function Sidebar({
   onDeleteCurrent,
   onDeleteSession,
 }: SidebarProps) {
+  const { t } = useTranslation('sidebar');
   const { user, logout } = useAuth();
   const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -74,7 +63,7 @@ export function Sidebar({
       await onDeleteSession(pendingDelete.session_id);
       setPendingDelete(null);
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : '删除会话失败');
+      setDeleteError(error instanceof Error ? error.message : t('confirmDelete.failed'));
     } finally {
       setIsDeleting(false);
     }
@@ -87,13 +76,13 @@ export function Sidebar({
         <div className={styles.titleRow}>
           <span className={styles.logo}>◌</span>
           <div>
-            <h1>镜澜导购</h1>
-            <p>把价格、评论与购买判断，整理成更清晰的结论。</p>
+            <h1>{t('brand.title')}</h1>
+            <p>{t('brand.tagline')}</p>
           </div>
         </div>
         <div className="status-badge">
           <span className={styles.statusDot} />
-          {getHealthLabel(health)}
+          {t(`health.${health === 'ok' ? 'ok' : health === 'degraded' ? 'degraded' : health === 'error' ? 'error' : 'loading'}`)}
         </div>
       </section>
 
@@ -104,66 +93,66 @@ export function Sidebar({
           </div>
           <div className={styles.userInfo}>
             <span className={styles.userName}>{user?.username}</span>
-            <Link to="/profile" className={styles.profileLink}>设置</Link>
+            <Link to="/profile" className={styles.profileLink}>{t('userSection.settings')}</Link>
           </div>
           <button
             type="button"
             onClick={() => {
-              Toast.info('已退出登录', 3000);
+              Toast.info(t('userSection.logoutToast'), 3000);
               logout();
             }}
             className={styles.logoutBtn}
-            title="退出登录"
-            aria-label="退出登录"
+            title={t('userSection.logout')}
+            aria-label={t('userSection.logout')}
           >
-            登出
+            {t('userSection.logout')}
           </button>
         </div>
       </section>
 
       <section className={['glass-panel', styles.panel].join(' ')}>
-        <p className="eyebrow">当前配置</p>
+        <p className="eyebrow">{t('config.title')}</p>
         <div className={styles.metricRow}>
-          <span>模型</span>
-          <strong className={styles.metricValue}>{runtimeConfig.model ?? '未设置'}</strong>
+          <span>{t('config.model')}</span>
+          <strong className={styles.metricValue}>{runtimeConfig.model ?? t('config.notSet')}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>温度</span>
+          <span>{t('config.temperature')}</span>
           <strong>{runtimeConfig.temperature}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>Max Tokens</span>
+          <span>{t('config.maxTokens')}</span>
           <strong>{runtimeConfig.max_tokens}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>记忆轮次</span>
-          <strong>{runtimeConfig.memory_turns} 轮</strong>
+          <span>{t('config.memoryTurns')}</span>
+          <strong>{runtimeConfig.memory_turns} {t('config.turnsUnit')}</strong>
         </div>
       </section>
 
       <section className={['glass-panel', styles.panel].join(' ')}>
-        <p className="eyebrow">本轮概览</p>
+        <p className="eyebrow">{t('overview.title')}</p>
         <div className={styles.metricRow}>
-          <span>提问次数</span>
+          <span>{t('overview.questionCount')}</span>
           <strong>{userTurns}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>工具调用</span>
+          <span>{t('overview.toolCalls')}</span>
           <strong>{toolCalls}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>输入 Token</span>
+          <span>{t('overview.inputTokens')}</span>
           <strong>{inputTokens}</strong>
         </div>
         <div className={styles.metricRow}>
-          <span>输出 Token</span>
+          <span>{t('overview.outputTokens')}</span>
           <strong>{outputTokens}</strong>
         </div>
       </section>
 
       <section className={styles.actions}>
         <Button variant="primary" onClick={onNewSession} disabled={isBusy}>
-          开启新对话
+          {t('actions.newSession')}
         </Button>
         <Button
           variant="danger"
@@ -177,12 +166,12 @@ export function Sidebar({
           }}
           disabled={isBusy || !activeSessionId}
         >
-          清空当前对话
+          {t('actions.clearCurrent')}
         </Button>
       </section>
 
       <section className={['glass-panel', styles.panel].join(' ')}>
-        <p className="eyebrow">历史会话</p>
+        <p className="eyebrow">{t('history.title')}</p>
         <SessionList
           sessions={sessions}
           activeSessionId={activeSessionId}
@@ -197,9 +186,9 @@ export function Sidebar({
 
       {pendingDelete ? (
         <ConfirmDialog
-          title={`删除「${pendingDelete.title}」？`}
-          description="确认后会同时删除数据库记录、内存中的会话列表缓存，以及浏览器里保存的当前会话标识。这个操作无法撤销。"
-          confirmLabel="确认删除"
+          title={t('confirmDelete.title', { title: pendingDelete.title })}
+          description={t('confirmDelete.description')}
+          confirmLabel={t('confirmDelete.confirm')}
           isProcessing={isDeleting}
           error={deleteError}
           onCancel={() => {

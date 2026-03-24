@@ -63,7 +63,7 @@ describe('SessionList', () => {
     expect(sessionItem).not.toBeNull();
 
     await user.hover(sessionItem!);
-    await user.click(screen.getByRole('button', { name: '删除会话 耳机对比' }));
+    await user.click(screen.getByRole('button', { name: '删除' }));
 
     expect(onRequestDelete).toHaveBeenCalledWith(
       expect.objectContaining({ session_id: 'session-a' }),
