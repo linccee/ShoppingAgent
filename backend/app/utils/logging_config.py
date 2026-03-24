@@ -1,14 +1,24 @@
 """
-Logging configuration with separate log files for different modules.
+Logging configuration with structured directory layout and hourly rotation.
+
+Directory structure:
+    logs/
+    └── {module}/
+        └── {date}/
+            ├── {module}_{HH}h.log          # Current hour
+            ├── {module}_{HH}h.log.1        # Previous hour
+            └── archive/                    # Old logs compressed
 """
 import logging
 import sys
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-# Base log directory
-LOG_DIR = Path(__file__).resolve().parents[2] / "logs"
+from logging.handlers import TimedRotatingFileHandler
+
+# Base log directory (project root logs/)
+LOG_DIR = Path(__file__).resolve().parents[3] / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
 # Log file names by category
@@ -23,6 +33,16 @@ LOG_FILES = {
     "api": "api",
 }
 
+# How many hourly rotations to keep (7 days * 24 hours = 168)
+KEEP_HOURS = 168
+
+
+def _get_module_log_dir(module: str) -> Path:
+    """Get the log directory for a module, creating if needed."""
+    log_dir = LOG_DIR / module / str(datetime.utcnow().date())
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir
+
 
 def setup_logger(
     name: Literal[*LOG_FILES.keys()],
@@ -30,7 +50,7 @@ def setup_logger(
 ) -> logging.Logger:
     """
     Get or create a logger with file and console handlers.
-    Each logger writes to its own dedicated log file.
+    Uses hourly rotating file handler with structured directory layout.
     """
     logger = logging.getLogger(name)
 
@@ -41,17 +61,26 @@ def setup_logger(
     logger.setLevel(level)
 
     # Determine log file path
-    log_file = LOG_DIR / f"{LOG_FILES[name]}_{date.today()}.log"
+    log_dir = _get_module_log_dir(name)
+    current_hour = datetime.utcnow().strftime("%H")
+    log_file = log_dir / f"{LOG_FILES[name]}_{current_hour}h.log"
 
-    # File handler (rotated daily)
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    # Timed rotating handler - rotates every hour
+    file_handler = TimedRotatingFileHandler(
+        filename=str(log_file),
+        when="H",           # Rotate every hour
+        interval=1,
+        backupCount=KEEP_HOURS,
+        encoding="utf-8",
+        utc=True,
+    )
     file_handler.setLevel(level)
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
 
-    # Formatter
+    # Formatter with trace info
     fmt = "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
     date_fmt = "%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(fmt, datefmt=date_fmt)
