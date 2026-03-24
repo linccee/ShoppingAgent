@@ -38,6 +38,12 @@ class Config:
     COMPRESSION_THRESHOLD = 1500       # 超过此 token 数时触发压缩
     RECENT_HISTORY_TOKEN_BUDGET = 1500 # 最近消息保留的 token 预算
     RECENT_TURNS_TO_KEEP = 2           # 兼容旧配置；当前 recent 保留策略已改为 token 预算
+    COMPRESSION_MAX_RETRIES = 10                    # 最大重试次数
+    COMPRESSION_INITIAL_RETRY_DELAY = 2.0         # 初始重试延迟(秒)
+    COMPRESSION_MAX_RETRY_DELAY = 60.0            # 最大重试延迟(秒)
+    COMPRESSION_RETRY_SCAN_INTERVAL = 10          # 重试扫描间隔(秒)
+    COMPRESSION_TASK_MAX_AGE_HOURS = 24           # 失败任务最大保存时间(小时)
+    COMPRESSION_DEGRADATION_COOLDOWN_MINUTES = 5  # 降级后恢复冷却时间(分钟)
     _raw_tiktoken_cache_dir = os.getenv("TIKTOKEN_CACHE_DIR", "")
     if _raw_tiktoken_cache_dir:
         _resolved_tiktoken_cache_dir = Path(_raw_tiktoken_cache_dir).expanduser()

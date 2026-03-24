@@ -3,6 +3,7 @@ import threading
 import logging
 import sys
 from datetime import date
+from pathlib import Path
 from typing import Generator
 
 from backend.app.utils.logging_config import agent_logger as _log
@@ -27,17 +28,16 @@ def _get_log_filehandler(session_id: str) -> logging.FileHandler:
     """为指定 session 创建或获取文件 handler，实现每个 session 一个日志文件。"""
     global _log_dir
 
-    import os
-
-    # 初始化日志目录
+    # 初始化日志目录 (使用项目根目录的 logs/agent/{date}/ 结构)
     if _log_dir is None:
-        _log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
-        os.makedirs(_log_dir, exist_ok=True)
+        # LOG_DIR from logging_config is at project_root/logs
+        from backend.app.utils.logging_config import LOG_DIR
+        _log_dir = str(LOG_DIR / "agent" / str(date.today()))
+        Path(_log_dir).mkdir(parents=True, exist_ok=True)
 
-    today = date.today().strftime("%Y-%m-%d")
-    # 文件名格式: {date}_{session_id}_agent_debug.log
-    log_filename = f"{today}_{session_id}_agent_debug.log"
-    log_path = os.path.join(_log_dir, log_filename)
+    # 文件名格式: {session_id}_agent_debug.log (放在 agent/{date}/ 目录下)
+    log_filename = f"{session_id}_agent_debug.log"
+    log_path = Path(_log_dir) / log_filename
 
     fh = logging.FileHandler(log_path, mode="a")
     fh.setFormatter(logging.Formatter("%(asctime)s %(message)s", "%H:%M:%S"))

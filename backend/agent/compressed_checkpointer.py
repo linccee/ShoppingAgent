@@ -17,6 +17,14 @@ from langchain_core.messages import BaseMessage, messages_from_dict, messages_to
 from langgraph.checkpoint.base import BaseCheckpointSaver, CheckpointTuple
 from langgraph.checkpoint.mongodb import MongoDBSaver
 
+from backend.agent.compression_retry import (
+    schedule_retry,
+    trigger_degradation,
+    get_degradation_threshold,
+    check_recovery,
+    _ensure_retry_scanner,
+    _set_compression_queue,
+)
 from backend.agent.memory_manager import (
     InvalidCompressedHistoryError,
     compress_history,
@@ -25,7 +33,7 @@ from backend.agent.memory_manager import (
 )
 from backend.agent.tool_output_compressor import compress_tool_messages
 from backend.app.config import Config
-from backend.utils.db import load_compressed_state, save_compressed_state
+from backend.utils.db import load_compressed_state, save_compressed_state, delete_failed_task
 from backend.app.utils.logging_config import agent_logger as _log
 
 _lite_llm = None
@@ -49,10 +57,11 @@ def _get_lite_llm():
 class _CompressionTask:
     """单个压缩任务的描述符。"""
 
-    def __init__(self, thread_id: str, messages: list[BaseMessage], source_checkpoint_id: str):
+    def __init__(self, thread_id: str, messages: list[BaseMessage], source_checkpoint_id: str, attempt_count: int = 0):
         self.thread_id = thread_id
         self.messages = messages
         self.source_checkpoint_id = source_checkpoint_id
+        self.attempt_count = attempt_count
 
 
 _compression_queue: queue.Queue[_CompressionTask] = queue.Queue()
@@ -142,7 +151,8 @@ def _deserialize_persisted_messages(state: dict) -> list[BaseMessage]:
     return messages
 
 
-def _mark_failed_if_current(thread_id: str, source_checkpoint_id: str, error: str) -> None:
+def _mark_failed_if_current(thread_id: str, source_checkpoint_id: str, error: str, attempt_count: int = 0) -> None:
+    """Mark compression as failed, scheduling retry if appropriate."""
     current_state = _get_persisted_state(thread_id, refresh=True)
     if not current_state:
         return
@@ -154,7 +164,18 @@ def _mark_failed_if_current(thread_id: str, source_checkpoint_id: str, error: st
             current_state.get("source_checkpoint_id"),
         )
         return
-    _persist_state(thread_id, source_checkpoint_id, None, "failed", error)
+
+    # Check if we should retry
+    next_attempt = attempt_count + 1
+    if schedule_retry(thread_id, source_checkpoint_id, current_state.get("messages", []), next_attempt, error):
+        _log.debug(
+            "[COMPRESSION_WORKER] Retry scheduled for thread_id=%s attempt=%d",
+            thread_id, next_attempt
+        )
+    else:
+        # Max retries exceeded, trigger degradation
+        trigger_degradation(thread_id)
+        _persist_state(thread_id, source_checkpoint_id, None, "failed", error)
 
 
 def _persist_compressed_if_current(task: _CompressionTask, compressed_messages: list[BaseMessage]) -> None:
@@ -177,33 +198,55 @@ def _persist_compressed_if_current(task: _CompressionTask, compressed_messages: 
 
 
 def _process_compression_task(task: _CompressionTask) -> None:
+    """Process a compression task with retry and degradation support."""
     _log.debug(
-        "[COMPRESSION_WORKER] Processing task for thread_id=%s source_checkpoint_id=%s",
+        "[COMPRESSION_WORKER] Processing task for thread_id=%s source_checkpoint_id=%s attempt=%d",
         task.thread_id,
         task.source_checkpoint_id,
+        task.attempt_count + 1,
     )
 
+    # Check for degradation/skip
+    threshold = get_degradation_threshold(task.thread_id)
+    if threshold is None:
+        _log.debug(
+            "[COMPRESSION_WORKER] Skipping compression for degraded thread_id=%s",
+            task.thread_id
+        )
+        _persist_state(task.thread_id, task.source_checkpoint_id, messages_to_dict(task.messages), "ready", None)
+        return
+
+    # Check recovery from degradation
+    check_recovery(task.thread_id)
+
     try:
-        # 速率限制：确保 lite_llm 调用不超过 1 req/s
+        # Rate limit + compression
         _enforce_rate_limit()
         compressed_messages = compress_history(
             task.messages,
-            threshold=Config.COMPRESSION_THRESHOLD,
+            threshold=threshold,
             llm=_get_lite_llm(),
         )
         validate_message_history(compressed_messages)
         _persist_compressed_if_current(task, compressed_messages)
+
+        # Success - delete any failed task record
+        delete_failed_task(task.thread_id, task.source_checkpoint_id)
+
     except InvalidCompressedHistoryError as exc:
         _log.error("[COMPRESSION_WORKER] Invalid compressed history: %s", exc)
-        _mark_failed_if_current(task.thread_id, task.source_checkpoint_id, str(exc))
+        _mark_failed_if_current(task.thread_id, task.source_checkpoint_id, str(exc), task.attempt_count)
     except Exception as exc:
         _log.error("[COMPRESSION_WORKER] Compression failed: %s", exc)
-        _mark_failed_if_current(task.thread_id, task.source_checkpoint_id, str(exc))
+        _mark_failed_if_current(task.thread_id, task.source_checkpoint_id, str(exc), task.attempt_count)
 
 
 def _compression_worker():
     """后台工作线程：消费压缩任务并持久化最新有效结果。"""
     _log.debug("[COMPRESSION_WORKER] Started")
+    # Inject queue reference into retry module
+    _set_compression_queue(_compression_queue)
+    _ensure_retry_scanner()
     while not _stop_compression_worker.is_set():
         try:
             task = _compression_queue.get(timeout=0.5)
@@ -326,7 +369,8 @@ class CompressedCheckpointer(BaseCheckpointSaver):
             return result_config
 
         total_tokens = count_messages_tokens(messages)
-        if total_tokens < Config.COMPRESSION_THRESHOLD:
+        effective_threshold = get_degradation_threshold(thread_id) or Config.COMPRESSION_THRESHOLD
+        if total_tokens < effective_threshold:
             _persist_state(
                 thread_id,
                 source_checkpoint_id,

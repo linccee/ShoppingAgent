@@ -223,8 +223,12 @@ def _format_messages_for_summary(messages: Sequence[BaseMessage]) -> str:
     return "\n".join(lines)
 
 
-def summarize_messages(messages: Sequence[BaseMessage], llm: BaseChatModel) -> str:
-    """调用 LLM 将消息列表压缩为摘要。"""
+def summarize_messages(
+    messages: Sequence[BaseMessage],
+    llm: BaseChatModel,
+    max_retries: int = 3,
+) -> str:
+    """调用 LLM 将消息列表压缩为摘要，支持指数退避重试。"""
     if not messages:
         return ""
 
@@ -242,14 +246,22 @@ def summarize_messages(messages: Sequence[BaseMessage], llm: BaseChatModel) -> s
 
 请用 300 字以内（如果内容过多，允许500字以内）概括要点："""
 
-    try:
-        response = llm.invoke(summary_prompt)
-        summary = response.content if hasattr(response, "content") else str(response)
-        _log.debug(f"[SUMMARIZE] Original {len(messages)} messages -> {len(summary)} chars summary")
-        return summary
-    except Exception as e:
-        _log.error(f"[SUMMARIZE] Failed: {e}")
-        return ""
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            response = llm.invoke(summary_prompt)
+            summary = response.content if hasattr(response, "content") else str(response)
+            _log.debug(f"[SUMMARIZE] Original {len(messages)} messages -> {len(summary)} chars summary")
+            return summary
+        except Exception as e:
+            last_error = e
+            _log.warning(f"[SUMMARIZE] Attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2 ** attempt)  # Simple backoff: 1s, 2s, 4s
+
+    _log.error(f"[SUMMARIZE] All {max_retries} attempts failed: {last_error}")
+    return ""
 
 
 def _split_prefix_and_turns(messages: Sequence[BaseMessage]) -> tuple[list[BaseMessage], list[list[BaseMessage]]]:
@@ -317,21 +329,24 @@ def _select_recent_turns_by_token_budget(
 
 def compress_history(
     messages: Sequence[BaseMessage],
-    threshold: int = Config.COMPRESSION_THRESHOLD,
+    threshold: int | None = None,
     llm: BaseChatModel | None = None,
 ) -> list[BaseMessage]:
     """
     如果消息历史超过阈值，压缩早期完整轮次为摘要。
+    threshold 参数允许外部传入降级后的阈值。
     """
     if not messages:
         return list(messages)
 
+    effective_threshold = threshold if threshold is not None else Config.COMPRESSION_THRESHOLD
+
     validate_message_history(messages)
 
     total_tokens = count_messages_tokens(messages)
-    _log.debug(f"[COMPRESS] Total tokens: {total_tokens}, threshold: {threshold}")
+    _log.debug(f"[COMPRESS] Total tokens: {total_tokens}, threshold: {effective_threshold}")
 
-    if total_tokens < threshold:
+    if total_tokens < effective_threshold:
         return list(messages)
 
     prefix, turns = _split_prefix_and_turns(messages)
