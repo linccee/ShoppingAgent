@@ -4,7 +4,6 @@
 压缩后的 LLM 上下文必须保持合法的工具调用序列，
 因此压缩和读取都基于完整对话轮次处理，而不是按消息条数切片。
 """
-import logging
 import os
 from typing import Sequence
 
@@ -12,8 +11,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 
 from backend.app.config import Config
-
-_log = logging.getLogger("memory_manager")
+from backend.app.utils.logging_config import agent_logger as _log
 
 
 class InvalidCompressedHistoryError(ValueError):

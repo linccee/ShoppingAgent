@@ -1,26 +1,17 @@
 """FastAPI application entrypoint."""
 from __future__ import annotations
 
-import logging
 import sys
-from datetime import date
 from pathlib import Path
 
-# Configure logging - output to both file and console
-log_dir = Path(__file__).resolve().parents[2] / "logs"
-log_dir.mkdir(exist_ok=True)
-log_file = log_dir / f"api_{date.today()}.log"
+# Configure logging using unified logging_config
+from backend.app.utils.logging_config import api_logger as logger
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler(log_file, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout),
-    ],
-)
-logger = logging.getLogger(__name__)
+if __package__ in {None, ""}:
+    project_root = Path(__file__).resolve().parents[2]
+    project_root_str = str(project_root)
+    if project_root_str not in sys.path:
+        sys.path.insert(0, project_root_str)
 
 if __package__ in {None, ""}:
     project_root = Path(__file__).resolve().parents[2]

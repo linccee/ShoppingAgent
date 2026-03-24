@@ -1,13 +1,11 @@
 """Security utilities for JWT and password handling."""
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import bcrypt
 import jwt
 from backend.app.config import Config
-
-logger = logging.getLogger(__name__)
+from backend.app.utils.logging_config import auth_logger as logger
 
 
 def hash_password(password: str) -> str:

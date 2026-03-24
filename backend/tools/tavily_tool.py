@@ -1,14 +1,12 @@
 """Tavily 搜索工具 - 使用 Tavily API 进行网络搜索。"""
 from datetime import datetime
-import logging
 from typing import Any
 
 import requests
 from langchain_core.tools import tool
 
 from backend.app.config import Config
-
-_log = logging.getLogger("agent_stream")
+from backend.app.utils.logging_config import tools_logger as _log
 
 
 def _preview_text(value: str, limit: int = 120) -> str:

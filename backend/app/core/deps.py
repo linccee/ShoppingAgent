@@ -1,5 +1,4 @@
 """Authentication dependencies for FastAPI routes."""
-import logging
 from typing import Annotated
 
 import jwt
@@ -8,8 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from backend.app.core.security import decode_token
 from backend.app.services.user_service import UserService
-
-logger = logging.getLogger(__name__)
+from backend.app.utils.logging_config import auth_logger as logger
 security = HTTPBearer()
 
 

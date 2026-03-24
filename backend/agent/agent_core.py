@@ -5,12 +5,14 @@ import sys
 from datetime import date
 from typing import Generator
 
-# ── Debug logger — writes to file so Streamlit stdout capture doesn't hide it ──
-_log = logging.getLogger("agent_stream")
-_log.setLevel(logging.DEBUG)
+from backend.app.utils.logging_config import agent_logger as _log
 
-# 避免重复添加 handler
-if not _log.handlers:
+# ── Debug logger — writes to file so Streamlit stdout capture doesn't hide it ──
+_log.setLevel(logging.DEBUG)
+_log.propagate = False  # Prevent duplicate to root logger
+
+# 避免重复添加 handler (only add if not already present via logging_config)
+if len(_log.handlers) < 2:  # logging_config adds 2 handlers
     # 控制台 handler — 输出到 stderr 避免被 Streamlit 捕获
     _ch = logging.StreamHandler(sys.stderr)
     _ch.setLevel(logging.DEBUG)

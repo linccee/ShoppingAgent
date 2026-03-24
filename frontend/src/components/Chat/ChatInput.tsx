@@ -80,6 +80,7 @@ export function ChatInput({ isStreaming, isStopping, onSubmit, onStop }: ChatInp
           </Button>
         )}
       </div>
+      <p className={styles.disclaimer}>Agent可能犯错，请核查重要的信息</p>
     </form>
   );
 }

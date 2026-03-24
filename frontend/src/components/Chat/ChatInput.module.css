@@ -3,7 +3,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'helper helper'
-    'input actions';
+    'input actions'
+    'disclaimer disclaimer';
   align-items: end;
   gap: 0.9rem;
   padding: 1rem;
@@ -102,13 +103,24 @@
   min-height: 3.5rem;
 }
 
+.disclaimer {
+  grid-area: disclaimer;
+  margin: 0;
+  padding: 0;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
 @media (max-width: 720px) {
   .form {
     grid-template-columns: 1fr;
     grid-template-areas:
       'helper'
       'input'
-      'actions';
+      'actions'
+      'disclaimer';
   }
 
   .actions {

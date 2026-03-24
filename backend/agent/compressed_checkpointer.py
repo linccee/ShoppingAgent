@@ -7,7 +7,6 @@
 3. 同一 thread 仅以最新快照为准，过期压缩结果丢弃
 4. lite_llm 调用严格限制在 1 req/s（API 速率限制）
 """
-import logging
 import queue
 import threading
 import time
@@ -27,8 +26,7 @@ from backend.agent.memory_manager import (
 from backend.agent.tool_output_compressor import compress_tool_messages
 from backend.app.config import Config
 from backend.utils.db import load_compressed_state, save_compressed_state
-
-_log = logging.getLogger("compressed_checkpointer")
+from backend.app.utils.logging_config import agent_logger as _log
 
 _lite_llm = None
 
