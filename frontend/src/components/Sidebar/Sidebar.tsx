@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '../common/Button';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { Toast } from '../common/Toast';
 import { SessionList } from './SessionList';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
@@ -107,7 +108,10 @@ export function Sidebar({
           </div>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              Toast.info('已退出登录', 3000);
+              logout();
+            }}
             className={styles.logoutBtn}
             title="退出登录"
             aria-label="退出登录"

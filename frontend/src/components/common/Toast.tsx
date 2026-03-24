@@ -43,6 +43,12 @@ interface ToastContextValue {
 }
 
 /**
+ * HMR 安全引用持有者 — 保持对 context 方法的最新引用，
+ * 即使模块被热更新重载，持有者对象本身也不会被重新创建。
+ */
+const holder: { current: ToastContextValue | null } = { current: null };
+
+/**
  * 默认配置
  */
 const DEFAULT_DURATION = 3000;
@@ -270,7 +276,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 /**
  * 生成唯一 ID
  */
-const generateId = () => `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `toast-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
 /**
  * Toast Provider 组件
@@ -317,8 +323,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return show({ type: 'info', message, duration, position });
   }, [show]);
 
+  const contextValue = { show, success, error, warning, info, remove };
+
+  // 每次渲染都更新持有者，让静态方法始终能访问最新引用
+  holder.current = contextValue;
+
   return (
-    <ToastContext.Provider value={{ show, success, error, warning, info, remove }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
       <ToastContainer toasts={toasts} onRemove={remove} />
     </ToastContext.Provider>
@@ -345,56 +356,44 @@ export class Toast {
    * 显示成功提示
    */
   static success(message: string, duration?: number, position?: ToastPosition): string {
-    return toastInstance?.success(message, duration, position) ?? '';
+    return holder.current?.success(message, duration, position) ?? '';
   }
 
   /**
    * 显示错误提示
    */
   static error(message: string, duration?: number, position?: ToastPosition): string {
-    return toastInstance?.error(message, duration, position) ?? '';
+    return holder.current?.error(message, duration, position) ?? '';
   }
 
   /**
    * 显示警告提示
    */
   static warning(message: string, duration?: number, position?: ToastPosition): string {
-    return toastInstance?.warning(message, duration, position) ?? '';
+    return holder.current?.warning(message, duration, position) ?? '';
   }
 
   /**
    * 显示信息提示
    */
   static info(message: string, duration?: number, position?: ToastPosition): string {
-    return toastInstance?.info(message, duration, position) ?? '';
+    return holder.current?.info(message, duration, position) ?? '';
   }
 
   /**
    * 自定义配置显示
    */
   static show(config: ToastConfig): string {
-    return toastInstance?.show(config) ?? '';
+    return holder.current?.show(config) ?? '';
   }
 
   /**
    * 移除指定 toast
    */
   static remove(id: string): void {
-    toastInstance?.remove(id);
+    holder.current?.remove(id);
   }
 }
-
-/**
- * 全局 toast 实例引用（由 Provider 设置）
- */
-let toastInstance: ToastContextValue | null = null;
-
-/**
- * 设置全局 toast 实例
- */
-export const setToastInstance = (instance: ToastContextValue | null): void => {
-  toastInstance = instance;
-};
 
 /**
  * useToast Hook - 在组件中使用 toast
@@ -410,12 +409,6 @@ export const useToast = (): ToastContextValue => {
   if (!context) {
     throw new Error('useToast 必须在 ToastProvider 内使用');
   }
-
-  // 更新全局实例
-  useEffect(() => {
-    setToastInstance(context);
-    return () => setToastInstance(null);
-  }, [context]);
 
   return context;
 };

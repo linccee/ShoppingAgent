@@ -4,6 +4,7 @@ import { useAppDispatch, useAppState } from '../context/useAppStore';
 import { listSessions, stopChat } from '../services/api';
 import { streamChat } from '../services/sse';
 import { logger } from '../utils/logger';
+import { Toast } from '../components/common/Toast';
 
 const ACTIVE_SESSION_KEY = 'mirror-curation.active-session-id';
 
@@ -50,10 +51,12 @@ export function useChat() {
             case 'stopped':
               logger.info('Chat', 'Stream stopped');
               dispatch({ type: 'stream/stopped' });
+              Toast.warning('生成已停止', 4000);
               break;
             case 'error':
               logger.error('Chat', `Stream error: ${event.data}`);
               dispatch({ type: 'stream/error', payload: event.data });
+              Toast.error('消息发送失败', 5000);
               break;
             case 'done':
               logger.info('Chat', 'Stream completed');
@@ -68,6 +71,7 @@ export function useChat() {
           type: 'stream/error',
           payload: error instanceof Error ? error.message : '消息发送失败',
         });
+        Toast.error('消息发送失败', 5000);
       } finally {
         try {
           const sessions = await listSessions();
@@ -96,6 +100,7 @@ export function useChat() {
         logger.warn('Chat', 'Stop request not accepted');
         dispatch({ type: 'stream/error', payload: '当前没有可停止的生成任务' });
         dispatch({ type: 'stream/finish' });
+        Toast.warning('当前没有可停止的生成任务', 4000);
       }
     } catch (error) {
       logger.error('Chat', 'Stop generation failed', error instanceof Error ? error.message : 'Unknown error');
@@ -104,6 +109,7 @@ export function useChat() {
         payload: error instanceof Error ? error.message : '停止生成失败',
       });
       dispatch({ type: 'stream/finish' });
+      Toast.error('停止生成失败', 5000);
     }
   }, [dispatch, state.activeSessionId, state.isStopping, state.isStreaming]);
 

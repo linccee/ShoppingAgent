@@ -1,6 +1,7 @@
 import { useState, FormEvent, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Toast } from '../components/common/Toast';
 import styles from './Register.module.css';
 import { logger } from '../utils/logger';
 
@@ -68,6 +69,7 @@ export default function Register() {
       logger.info('Register', `Registration attempt for user: ${username}, email: ${email}`);
       await register(username, email, password);
       logger.info('Register', `Registration successful for user: ${username}`);
+      Toast.success('注册成功，即将跳转到登录页', 2500);
       navigate('/login');
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { detail?: { message?: string } } } };

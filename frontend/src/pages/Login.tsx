@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Toast } from '../components/common/Toast';
 import styles from './Login.module.css';
 import { logger } from '../utils/logger';
 
@@ -22,6 +23,7 @@ export default function Login() {
       logger.info('Login', `Login attempt for user: ${username}`);
       await login(username, password);
       logger.info('Login', `Login successful for user: ${username}`);
+      Toast.success('登录成功', 2500);
       navigate('/chat');
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { detail?: { message?: string } } } };

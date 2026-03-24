@@ -11,6 +11,7 @@ import {
 } from '../services/api';
 import type { SessionSummary } from '../types';
 import { logger } from '../utils/logger';
+import { Toast } from '../components/common/Toast';
 
 const ACTIVE_SESSION_KEY = 'mirror-curation.active-session-id';
 
@@ -74,6 +75,7 @@ export function useSessions() {
     }
 
     dispatch({ type: 'session/create', payload: detail });
+    Toast.info('新对话已创建', 3000);
   }, [dispatch, refreshSessions]);
 
   const recoverMissingSession = useCallback(async () => {
@@ -141,6 +143,8 @@ export function useSessions() {
       if (storedSessionId === sessionId || removingActive) {
         clearActiveSession();
       }
+
+      Toast.info('会话已删除', 3000);
 
       const sessions = await refreshSessions();
 
