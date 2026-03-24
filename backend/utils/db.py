@@ -2,7 +2,7 @@
 utils/db.py
 MongoDB integration for persistent chat sessions and derived agent state.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 from typing import Any
 
@@ -52,7 +52,7 @@ def save_session(
                 title += "..."
             break
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     update_fields = {
         "title": title,
@@ -117,7 +117,7 @@ def save_compressed_state(
             "compressed_messages": compressed_messages,
             "status": status,
             "error": error,
-            "updated_at": datetime.utcnow(),
+            "updated_at": datetime.now(timezone.utc),
         }},
         upsert=True,
     )

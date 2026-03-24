@@ -1,8 +1,24 @@
 """Response models for the FastAPI backend."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+
+def _utc_datetime(v: datetime) -> str:
+    """Serialize datetime as UTC ISO 8601 string.
+
+    Handles both aware and naive datetimes:
+    - Aware: strip existing tz and re-attach UTC (isoformat adds Z)
+    - Naive: assume it's already UTC (legacy data), just isoformat
+    """
+    if v.tzinfo is None:
+        # Naive datetime — assume UTC (legacy data from MongoDB)
+        v = v.replace(tzinfo=timezone.utc)
+    else:
+        # Aware — convert to UTC
+        v = v.astimezone(timezone.utc)
+    return v.isoformat()
 
 
 class SessionCreateResponse(BaseModel):
@@ -14,6 +30,10 @@ class SessionCreateResponse(BaseModel):
 class SessionSummaryResponse(BaseModel):
     """Session summary payload."""
 
+    model_config = ConfigDict(
+        json_encoders={datetime: _utc_datetime},
+    )
+
     session_id: str
     title: str
     updated_at: datetime | None = None
@@ -22,6 +42,10 @@ class SessionSummaryResponse(BaseModel):
 
 class SessionDetailResponse(BaseModel):
     """Full session payload."""
+
+    model_config = ConfigDict(
+        json_encoders={datetime: _utc_datetime},
+    )
 
     session_id: str
     title: str
