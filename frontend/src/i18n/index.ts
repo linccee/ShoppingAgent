@@ -11,7 +11,7 @@ i18n
   .use(initReactI18next)
   .init({
     fallbackLng: FALLBACK_LANGUAGE,
-    supportedLngs: ['zh-CN', 'en-US'],
+    supportedLngs: ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'],
     debug: false,
 
     ns: ['common', 'auth', 'chat', 'sidebar', 'profile', 'errors'],

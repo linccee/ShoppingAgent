@@ -11,7 +11,7 @@ import styles from './Profile.module.css';
 export default function Profile() {
   const { t } = useTranslation('profile');
   const { user, logout } = useAuth();
-  const { language: currentLang } = useLanguage();
+  const { language: currentLang, setPreference } = useLanguage();
   const navigate = useNavigate();
 
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -52,6 +52,7 @@ export default function Profile() {
     setMessage('');
     try {
       await userApi.updatePreferences(preferences);
+      setPreference(preferences.language_preference);
       setMessageType('success');
       setMessage(t('preferences.saveSuccess'));
     } catch {
@@ -126,7 +127,7 @@ export default function Profile() {
               {LANGUAGE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.flag} {opt.nativeLabel}
-                  {opt.value === 'auto' && ` (${currentLang === 'zh-CN' ? '中文' : 'EN'})`}
+                  {opt.value === 'auto' && ` (${currentLang === 'zh-CN' ? '中文' : currentLang === 'ja-JP' ? '日本語' : currentLang === 'ko-KR' ? '한국어' : 'EN'})`}
                 </option>
               ))}
             </select>

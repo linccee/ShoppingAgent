@@ -1,0 +1,52 @@
+{
+  "health": {
+    "ok": "バックエンドオンライン",
+    "degraded": "サービス低下",
+    "error": "サービスに到達不能",
+    "loading": "確認中"
+  },
+  "brand": {
+    "title": "鏡澜导购",
+    "tagline": "価格、レビューと購入判断を、より明確な結論に整理します。"
+  },
+  "userSection": {
+    "settings": "設定",
+    "logout": "ログアウト",
+    "logoutToast": "ログアウトしました"
+  },
+  "config": {
+    "title": "現在の設定",
+    "model": "モデル",
+    "notSet": "未設定",
+    "temperature": "温度",
+    "maxTokens": "Max Tokens",
+    "memoryTurns": "メモリターン",
+    "turnsUnit": "ターン"
+  },
+  "overview": {
+    "title": "このターンの概要",
+    "questionCount": "質問回数",
+    "toolCalls": "ツール呼び出し",
+    "inputTokens": "入力 Token",
+    "outputTokens": "出力 Token"
+  },
+  "actions": {
+    "newSession": "新しい対話を開始",
+    "clearCurrent": "現在の対話をクリア"
+  },
+  "history": {
+    "title": "履歴会话",
+    "empty": "まだ履歴会话がありません。",
+    "lastUpdate": "最終更新",
+    "unknownTime": "不明な時間",
+    "delete": "削除"
+  },
+  "confirmDelete": {
+    "title": "「{title}」を削除しますか？",
+    "description": "確認すると、データベース記録、メモリ内の会话リストキャッシュ、およびブラウザに保存された現在の会话識別子が同時に削除されます。この操作は元に戻せません。",
+    "confirm": "削除を確認",
+    "cancel": "キャンセル",
+    "deleting": "削除中...",
+    "failed": "会话の削除に失敗しました"
+  }
+}

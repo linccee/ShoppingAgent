@@ -23,7 +23,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const [preference, setPreferenceState] = useState<LanguagePreference>(() => {
     const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored === 'auto' || stored === 'zh-CN' || stored === 'en-US') {
+    if (stored === 'auto' || stored === 'zh-CN' || stored === 'en-US' || stored === 'ja-JP' || stored === 'ko-KR') {
       return stored;
     }
     return 'auto';
@@ -67,10 +67,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       if (backendPreference && backendPreference !== preference) {
         setPreferenceState(backendPreference);
         localStorage.setItem(LANGUAGE_STORAGE_KEY, backendPreference);
+        const resolved = resolveLanguage(backendPreference);
+        void i18n.changeLanguage(resolved);
       }
       setIsLoaded(true);
     },
-    [preference],
+    [preference, i18n],
   );
 
   const value = useMemo<LanguageContextValue>(

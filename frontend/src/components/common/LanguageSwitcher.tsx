@@ -57,7 +57,7 @@ export function LanguageSwitcher() {
               <span className={styles.nativeLabel}>{option.nativeLabel}</span>
               {option.value === 'auto' && (
                 <span className={styles.autoHint}>
-                  ({autoResolved === 'zh-CN' ? '中文' : 'EN'})
+                  ({autoResolved === 'zh-CN' ? '中文' : autoResolved === 'ja-JP' ? '日本語' : autoResolved === 'ko-KR' ? '한국어' : 'EN'})
                 </span>
               )}
             </li>

@@ -1,0 +1,25 @@
+{
+  "loading": "인터페이스를 준비 중...",
+  "booting": "경澜导购를 깨우는 중...",
+  "privateRouteLoading": "로딩 중...",
+  "languageSwitcher": {
+    "title": "언어 전환"
+  },
+  "toast": {
+    "success": "성공",
+    "error": "오류",
+    "warning": "경고",
+    "info": "정보",
+    "close": "닫기"
+  },
+  "confirmDialog": {
+    "eyebrow": "삭제 확인",
+    "cancel": "취소",
+    "deleting": "삭제 중..."
+  },
+  "errors": {
+    "generic": "오류가 발생했습니다. 다시 시도해 주세요",
+    "networkError": "네트워크 오류. 연결을 확인해 주세요",
+    "unauthorized": "미승인. 다시 로그인해 주세요"
+  }
+}

@@ -1,5 +1,5 @@
 /** 支持的语言类型 */
-export type Language = 'zh-CN' | 'en-US';
+export type Language = 'zh-CN' | 'en-US' | 'ja-JP' | 'ko-KR';
 
 /** 语言偏好值（含自动） */
 export type LanguagePreference = 'auto' | Language;
@@ -21,6 +21,10 @@ export const BROWSER_TO_LANGUAGE: Record<string, Language> = {
   'en': 'en-US',
   'en-US': 'en-US',
   'en-GB': 'en-US',
+  'ja': 'ja-JP',
+  'ja-JP': 'ja-JP',
+  'ko': 'ko-KR',
+  'ko-KR': 'ko-KR',
 };
 
 /** 回退到英语 */
@@ -31,6 +35,8 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { value: 'auto', label: '自动', nativeLabel: 'Auto', flag: '🌐' },
   { value: 'zh-CN', label: '简体中文', nativeLabel: '简体中文', flag: '🇨🇳' },
   { value: 'en-US', label: 'English', nativeLabel: 'English', flag: '🇺🇸' },
+  { value: 'ja-JP', label: '日本語', nativeLabel: '日本語', flag: '🇯🇵' },
+  { value: 'ko-KR', label: '한국어', nativeLabel: '한국어', flag: '🇰🇷' },
 ];
 
 /** localStorage key */
