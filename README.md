@@ -3,7 +3,7 @@
 > 智能多平台购物决策助手 — 连接 Google Shopping、Amazon 与 eBay，一轮对话完成比价、评论归纳与购买建议。
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.55-red.svg)](https://streamlit.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116-green.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.1-green.svg)](https://langchain.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.15+-orange.svg)](https://www.mongodb.com/)
 
@@ -17,23 +17,35 @@
 | **智能推荐** | 综合价格、评分、评论给出结构化购买建议 |
 | **会话记忆** | MongoDB 持久化记忆，跨重启保持上下文 |
 
+## 当前状态
+
+当前受支持的运行入口已经切换为 `backend.app.main` 和新的 `frontend/` React 应用。
+
+- 后端：FastAPI + LangGraph + MongoDB
+- 前端：React 18 + TypeScript + Vite
+- 旧版 Streamlit 运行文件已下线
+
 ## 系统架构
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         UI 层                               │
-│                    Streamlit 前端                           │
-│               (玻璃态设计 + 流式输出 + 时间线追踪)            │
+│                      Client Layer                           │
+│            React Frontend / 任意 HTTP Client                │
 └────────────────────────────┬────────────────────────────────┘
                              │
 ┌────────────────────────────▼────────────────────────────────┐
-│                      Agent 层                                │
+│                     FastAPI Backend                          │
+│        /api/v1/chat/*  /api/v1/sessions  /api/v1/health      │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────┐
+│                      Agent / Tool Layer                      │
 │                   LangGraph ReAct Agent                      │
 │            (MongoDBSaver 持久化 Checkpointer)                │
 └────────────────────────────┬────────────────────────────────┘
                              │
 ┌────────────────────────────▼────────────────────────────────┐
-│                      工具层                                  │
+│                      Tool Layer                              │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌───────┐ │
 │  │ 搜索     │ │ 价格     │ │ 评论     │ │ 汇率    │ │ Tavily│ │
 │  │ search   │ │ prices   │ │ reviews  │ │ currency│ │ search│ │
@@ -66,8 +78,17 @@ input → search → ┬→ price ─┐
 
 ### 安装依赖
 
+后端依赖：
+
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
+```
+
+前端依赖：
+
+```bash
+cd frontend
+npm install
 ```
 
 ### 配置环境变量
@@ -75,10 +96,10 @@ pip install -r requirements.txt
 创建 `.env` 文件：
 
 ```bash
-# 主模型 (支持 OpenAI 兼容 API)
-api_key=your_api_key
-base_url=your_api_base_url
-QWEN_MODEL_ID=your_model_id
+# 主模型 (优先使用新变量名，兼容旧变量)
+LLM_API_KEY=your_api_key
+LLM_BASE_URL=your_api_base_url
+LLM_MODEL_ID=your_model_id
 
 # 搜索服务
 SERPAPI_API_KEY=your_serpapi_key      # https://serpapi.com/
@@ -93,42 +114,53 @@ EXCHANGE_RATE_API_KEY=your_exchange_rate_key
 
 ### 启动
 
+后端：
+
 ```bash
-streamlit run main.py
+uvicorn backend.app.main:app --reload
 ```
 
-应用默认运行在 `http://localhost:8501`
+前端：
+
+```bash
+cd frontend
+npm run dev
+```
+
+- 后端默认运行在 `http://127.0.0.1:8000`
+- 前端默认运行在 `http://127.0.0.1:5173`
+
+### API 概览
+
+- `POST /api/v1/chat/stream`: SSE 流式聊天
+- `POST /api/v1/chat/stop`: 停止生成
+- `POST /api/v1/sessions`: 创建会话
+- `GET /api/v1/sessions`: 列出会话
+- `GET /api/v1/sessions/{session_id}`: 获取会话详情
+- `DELETE /api/v1/sessions/{session_id}`: 删除会话
+- `GET /api/v1/health`: 健康检查
 
 ## 项目结构
 
 ```
 1-agent/
-├── main.py                 # Streamlit 入口
-├── config.py               # 配置管理
-├── agent/
-│   ├── agent_core.py       # Agent 工厂与流式执行器
-│   ├── state.py            # SharedState TypedDict
-│   ├── graph.py            # StateGraph 构建器
-│   ├── nodes.py            # 状态节点实现
-│   ├── prompt.py           # System Prompt
-│   ├── memory_manager.py   # 记忆管理器
-│   ├── compressed_checkpointer.py  # 记忆压缩检查点
-│   └── ...
-├── tools/
-│   ├── search_tool.py      # 商品搜索 (SerpAPI)
-│   ├── price_tool.py       # 实时价格
-│   ├── review_tool.py      # 评论分析
-│   ├── currency_exchange_tool.py  # 汇率转换
-│   └── tavily_tool.py      # 网页搜索与信息提取
-├── ui/
-│   ├── chat.py             # 聊天组件
-│   ├── sidebar.py          # 侧边栏
-│   └── stop_injection.py   # 停止按钮注入
-├── utils/
-│   └── db.py               # MongoDB 会话管理
-├── test/                   # 单元测试
-└── assets/
-    └── style.css           # 自定义样式
+├── backend/
+│   ├── app/
+│   │   ├── main.py         # FastAPI 入口
+│   │   ├── config.py       # 配置管理
+│   │   ├── api/routes/     # chat / session / health 路由
+│   │   ├── models/         # Pydantic 请求/响应模型
+│   │   └── services/       # AgentService / SessionService
+│   ├── agent/              # LangGraph agent 核心
+│   ├── tools/              # 搜索/价格/评论/汇率/Tavily 工具
+│   ├── utils/db.py         # MongoDB 会话与压缩状态
+│   └── requirements.txt
+├── frontend/
+│   ├── src/                # React 前端源码
+│   ├── package.json
+│   └── vite.config.ts
+├── test/                   # Python 单元测试
+└── *.backup                # 迁移前备份文件
 ```
 
 ## 工具说明
@@ -153,7 +185,8 @@ streamlit run main.py
 
 | 类别 | 技术 |
 |------|------|
-| 前端 | Streamlit 1.55, Custom CSS |
+| API | FastAPI 0.116, Uvicorn |
+| 前端 | React 18 + TypeScript + Vite |
 | Agent | LangGraph 1.1, LangChain Core |
 | 记忆 | MongoDB + LangGraph Checkpointer |
 | 搜索 | SerpAPI, Tavily API |

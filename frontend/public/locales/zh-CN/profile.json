@@ -1,0 +1,25 @@
+{
+  "loading": "加载中...",
+  "back": "返回聊天",
+  "title": "个人设置",
+  "account": {
+    "title": "账户信息",
+    "username": "用户名",
+    "email": "邮箱"
+  },
+  "preferences": {
+    "title": "偏好设置",
+    "language": {
+      "label": "界面语言",
+      "auto": "自动（跟随浏览器）",
+      "description": "选择自动时，系统将根据您的浏览器语言设置自动切换界面语言。"
+    },
+    "currency": "默认货币",
+    "notification": "启用通知",
+    "save": "保存设置",
+    "saving": "保存中...",
+    "saveSuccess": "保存成功",
+    "saveError": "保存失败"
+  },
+  "logout": "退出登录"
+}

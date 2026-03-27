@@ -1,0 +1,52 @@
+{
+  "health": {
+    "ok": "Backend Online",
+    "degraded": "Degraded Service",
+    "error": "Service Unavailable",
+    "loading": "Checking..."
+  },
+  "brand": {
+    "title": "Mirror Curation",
+    "tagline": "Organizing prices, reviews, and purchase decisions into clearer conclusions."
+  },
+  "userSection": {
+    "settings": "Settings",
+    "logout": "Logout",
+    "logoutToast": "Logged out"
+  },
+  "config": {
+    "title": "Current Config",
+    "model": "Model",
+    "notSet": "Not set",
+    "temperature": "Temperature",
+    "maxTokens": "Max Tokens",
+    "memoryTurns": "Memory Turns",
+    "turnsUnit": "turns"
+  },
+  "overview": {
+    "title": "Session Overview",
+    "questionCount": "Questions",
+    "toolCalls": "Tool Calls",
+    "inputTokens": "Input Tokens",
+    "outputTokens": "Output Tokens"
+  },
+  "actions": {
+    "newSession": "New Conversation",
+    "clearCurrent": "Clear Current Chat"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No conversation history yet.",
+    "lastUpdate": "Last updated",
+    "unknownTime": "Unknown time",
+    "delete": "Delete"
+  },
+  "confirmDelete": {
+    "title": "Delete \"{title}\"?",
+    "description": "This will permanently delete the database record, in-memory session cache, and the current session ID stored in your browser. This action cannot be undone.",
+    "confirm": "Confirm Delete",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "failed": "Failed to delete session"
+  }
+}

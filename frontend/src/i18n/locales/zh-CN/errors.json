@@ -1,0 +1,8 @@
+{
+  "generic": "出错了，请重试",
+  "networkError": "网络错误，请检查连接",
+  "unauthorized": "未授权，请重新登录",
+  "serverError": "服务器错误，请稍后重试",
+  "notFound": "页面不存在",
+  "forbidden": "没有访问权限"
+}

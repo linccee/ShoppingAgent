@@ -1,0 +1,51 @@
+{
+  "input": {
+    "helperLead": "把预算、场景和对比对象写清楚，答案会更快收敛到可购买结论。",
+    "hints": {
+      "budget": "预算",
+      "budgetText": "说清区间更容易收敛方案",
+      "scene": "场景",
+      "sceneText": "通勤、办公、拍摄会明显改变推荐",
+      "compare": "对比",
+      "compareText": "可以直接点名两个型号或两个平台"
+    },
+    "placeholder": "描述你的购买目标，例如：帮我挑一台预算 ¥3000 左右的降噪耳机",
+    "send": "发送",
+    "stopping": "停止中...",
+    "stop": "停止生成",
+    "disclaimer": "Agent可能犯错，请核查重要的信息"
+  },
+  "message": {
+    "thinking": "思考中..."
+  },
+  "timeline": {
+    "title": "轨迹回放",
+    "collapse": "收起",
+    "expand": "展开",
+    "steps": "{count} 步",
+    "toolCall": "工具调用",
+    "invoke": "调用 {tool}",
+    "completed": "已完成",
+    "processing": "处理中"
+  },
+  "hero": {
+    "eyebrow": "Mirror Curation · 镜澜导购",
+    "headline": "把复杂购物决策，整理成一眼就能判断的答案。",
+    "description": "连接 Google Shopping、Amazon 与 eBay，帮你完成比价、评论归纳与购买建议，在一轮对话里得到更清晰的购买判断。",
+    "features": {
+      "priceCompare": "多平台比价",
+      "reviewInsight": "评论洞察",
+      "budgetDecision": "预算决策"
+    },
+    "platformNote": "搜索、评论与价格判断会被整理成一份可执行结论。",
+    "promptsTitle": "试试这些开场白",
+    "promptsHeadline": "从"想买点什么"到"应该买哪一个"，只差一次更清晰的对话。",
+    "promptsText": "告诉我预算、使用场景或偏好，我会整理平台价格、评论信号与最终建议。",
+    "examplePrompts": [
+      "想买一副通勤降噪耳机，预算 ¥2000",
+      "帮我比较适合游戏和办公的 27 寸显示器",
+      "我想挑一台适合拍视频的手机，预算 ¥5000",
+      "现在买 PS5，哪个平台更划算？"
+    ]
+  }
+}

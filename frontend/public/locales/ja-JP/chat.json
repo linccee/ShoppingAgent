@@ -1,0 +1,51 @@
+{
+  "input": {
+    "helperLead": "予算、シーン、比較対象を明確に書くと、答えが素早く購入結論に収束します。",
+    "hints": {
+      "budget": "予算",
+      "budgetText": "範囲を明示すると方案が絞りやすくなります",
+      "scene": "シーン",
+      "sceneText": "通勤、办公、撮影で推薦が大きく変わります",
+      "compare": "比較",
+      "compareText": "2つのモデルや2つのプラットフォームを直接指定できます"
+    },
+    "placeholder": "購入目標を描述してください，例如：予算30万円程度のノイズキャンセリングイヤホンを帮我挑一台",
+    "send": "送信",
+    "stopping": "停止中...",
+    "stop": "生成を停止",
+    "disclaimer": "Agentは間違いを犯す可能性があります。重要な情報は必ず確認してください"
+  },
+  "message": {
+    "thinking": "思考中..."
+  },
+  "timeline": {
+    "title": "軌跡再生",
+    "collapse": "折りたたむ",
+    "expand": "展開する",
+    "steps": "{count} ステップ",
+    "toolCall": "ツール呼び出し",
+    "invoke": "{tool} を呼び出し",
+    "completed": "完了",
+    "processing": "処理中"
+  },
+  "hero": {
+    "eyebrow": "Mirror Curation · 鏡澜导购",
+    "headline": "複雑な購入判断を、一目で判断できる答えに整理します。",
+    "description": "Google Shopping、Amazon、eBayに接続し、比較、评论集約と購入提案，帮助在一轮对话中得到更清晰的分析。",
+    "features": {
+      "priceCompare": "マルチプラットフォーム価格比較",
+      "reviewInsight": "レビュー分析",
+      "budgetDecision": "予算判断"
+    },
+    "platformNote": "検索、レビュー、価格判断は実行可能な結論に整理されます。",
+    "promptsTitle": "これらのプロンプトを試す",
+    "promptsHeadline": "「何か想买点什么」から「どれを買うべきか」まで、より明確な対话だけです。",
+    "promptsText": "予算、使用シーン、偏好を教えてください。プラットフォーム価格、レビューシグナル、最終提案を整理します。",
+    "examplePrompts": [
+      "通勤用ノイズキャンセリングイヤホンを探しています、予算20万円",
+      "ゲームと办公の両方に適した27インチモニターを比較してほしい",
+      "動画撮影に適したスマホを探しています、予算50万円",
+      "今PS5を買うなら，哪个プラットフォームがお得更得?"
+    ]
+  }
+}

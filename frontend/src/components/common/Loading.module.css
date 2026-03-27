@@ -1,0 +1,28 @@
+.loading {
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  min-height: 100vh;
+  color: var(--text-muted);
+}
+
+.orb {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.96), transparent 40%),
+    linear-gradient(135deg, rgba(75, 145, 255, 0.95), rgba(171, 220, 255, 0.85));
+  box-shadow: 0 18px 38px rgba(75, 145, 255, 0.25);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
