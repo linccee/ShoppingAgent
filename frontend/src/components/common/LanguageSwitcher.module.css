@@ -1,0 +1,94 @@
+.wrapper {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 200;
+  display: inline-block;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(115, 146, 182, 0.22);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main, #334155);
+  backdrop-filter: blur(12px);
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.trigger:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.label {
+  font-size: 0.8rem;
+}
+
+.chevron {
+  font-size: 0.55rem;
+  transition: transform 0.2s;
+  opacity: 0.6;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 170px;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(115, 146, 182, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 8px 28px rgba(100, 130, 160, 0.18);
+  backdrop-filter: blur(20px);
+  z-index: 201;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: var(--text-main, #334155);
+  transition: background 0.1s;
+}
+
+.option:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.option.active {
+  background: rgba(99, 102, 241, 0.12);
+  font-weight: 700;
+}
+
+.nativeLabel {
+  flex: 1;
+}
+
+.autoHint {
+  font-size: 0.72rem;
+  color: var(--text-soft, #94a3b8);
+}

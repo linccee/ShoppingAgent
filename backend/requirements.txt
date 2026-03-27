@@ -1,0 +1,33 @@
+# === API Runtime ===
+fastapi==0.116.1
+uvicorn==0.35.0
+
+# === Core Runtime ===
+streamlit==1.55.0
+
+# === Agent & LLM ===
+langchain==1.2.12
+langchain-core==1.2.19
+langchain-openai==0.3.35
+langgraph==1.1.1
+langgraph-prebuilt==1.0.8
+
+# === Checkpoint / Memory ===
+langgraph-checkpoint==4.0.1
+langgraph-checkpoint-mongodb==0.3.1
+pymongo==4.15.5
+
+# === Tools ===
+serpapi==0.1.5
+tavily-python==0.7.23
+requests==2.32.5
+
+# === Config ===
+python-dotenv==1.1.0
+
+# === Testing ===
+pytest==9.0.2
+
+# === Authentication ===
+pyjwt==2.12.1
+bcrypt==5.0.0

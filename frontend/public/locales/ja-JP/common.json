@@ -1,0 +1,25 @@
+{
+  "loading": "インターフェースを準備中...",
+  "booting": "鏡澜导购を起動中...",
+  "privateRouteLoading": "読み込み中...",
+  "languageSwitcher": {
+    "title": "言語を切り替え"
+  },
+  "toast": {
+    "success": "成功",
+    "error": "エラー",
+    "warning": "警告",
+    "info": "情報",
+    "close": "閉じる"
+  },
+  "confirmDialog": {
+    "eyebrow": "削除の確認",
+    "cancel": "キャンセル",
+    "deleting": "削除中..."
+  },
+  "errors": {
+    "generic": "エラーが発生しました。再試行してください",
+    "networkError": "ネットワークエラー。接続を確認してください",
+    "unauthorized": "未承認。再次ログインしてください"
+  }
+}

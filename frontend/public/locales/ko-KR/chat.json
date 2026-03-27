@@ -1,0 +1,51 @@
+{
+  "input": {
+    "helperLead": "예산, 사용 시나리오, 비교 대상을 명확히 적으면 답이 더 빠르게 구매 결론으로 수렴됩니다.",
+    "hints": {
+      "budget": "예산",
+      "budgetText": "범위를 명확히 하면 방안이 더 빨리 좁혀집니다",
+      "scene": "시나리오",
+      "sceneText": "통근, 사무, 촬영에 따라 추천이 크게 달라집니다",
+      "compare": "비교",
+      "compareText": "두 모델이나 두 플랫폼을 직접 지명할 수 있습니다"
+    },
+    "placeholder": "구매 목표를 설명해 주세요, 예: 예산 30만원 정도의 노이즈 캔슬링 이어폰을 찾아주세요",
+    "send": "전송",
+    "stopping": "중지 중...",
+    "stop": "생성 중지",
+    "disclaimer": "Agent가 실수할 수 있습니다. 중요한 정보는 반드시 확인해 주세요"
+  },
+  "message": {
+    "thinking": "생각 중..."
+  },
+  "timeline": {
+    "title": "추적 재생",
+    "collapse": "접기",
+    "expand": "펼치기",
+    "steps": "{count} 단계",
+    "toolCall": "도구 호출",
+    "invoke": "{tool} 호출 중",
+    "completed": "완료",
+    "processing": "처리 중"
+  },
+  "hero": {
+    "eyebrow": "Mirror Curation · 경澜导购",
+    "headline": "복잡한 구매 결정을, 한눈에 판단할 수 있는 답으로 정리합니다.",
+    "description": "Google Shopping, Amazon, eBay에 연결하여 비교, 리뷰 종합 및 구매 제안을 도와주고, 한 번의 대화에서 더 명확한 구매 판단을 얻을 수 있습니다.",
+    "features": {
+      "priceCompare": "멀티 플랫폼 가격 비교",
+      "reviewInsight": "리뷰 인사이트",
+      "budgetDecision": "예산 결정"
+    },
+    "platformNote": "검색, 리뷰 및 가격 판단은 실행 가능한 결론으로 정리됩니다.",
+    "promptsTitle": "이 프롬프트를 시도해 보세요",
+    "promptsHeadline": "「뭘 살까」에서 「어떤 걸 사야 할까」까지, 더 명확한 대화 한 번이면 됩니다.",
+    "promptsText": "예산, 사용 시나리오 또는 선호도를 알려주세요. 플랫폼 가격, 리뷰 신호 및 최종 제안을 정리해 드립니다.",
+    "examplePrompts": [
+      "통근용 노이즈 캔슬링 이어폰을 찾고 있습니다, 예산 20만원",
+      "게임과 사무 모두에 적합한 27인치 모니터를 비교해 주세요",
+      "영상 녹화에 적합한 폰을 찾고 있습니다, 예산 50만원",
+      "지금 PS5를 살 거라면 어느 플랫폼이 더 유리한가요?"
+    ]
+  }
+}

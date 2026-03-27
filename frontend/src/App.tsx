@@ -1,0 +1,112 @@
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import { AppProvider } from './context/AppContext';
+import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { ToastProvider } from './components/common/Toast';
+import { LanguageSwitcher } from './components/common/LanguageSwitcher';
+import { useAppState } from './context/useAppStore';
+import { useSessions } from './hooks/useSessions';
+import { useChat } from './hooks/useChat';
+import { Loading } from './components/common/Loading';
+import { Sidebar } from './components/Sidebar/Sidebar';
+import { Hero } from './components/Hero/Hero';
+import { ChatMessage } from './components/Chat/ChatMessage';
+import { ChatInput } from './components/Chat/ChatInput';
+import PrivateRoute from './components/PrivateRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import styles from './App.module.css';
+
+function Shell() {
+  const state = useAppState();
+  const { initializeApp, loadSession, createAndSelectSession, removeActiveSession, removeSession } = useSessions();
+  const { sendMessage, stopGeneration } = useChat();
+
+  useEffect(() => {
+    void initializeApp();
+  }, [initializeApp]);
+
+  if (state.isBootstrapping) {
+    return <Loading />;
+  }
+
+  return (
+    <div className={styles.shell}>
+      <Sidebar
+        sessions={state.sessions}
+        activeSessionId={state.activeSessionId}
+        messages={state.messages}
+        inputTokens={state.inputTokens}
+        outputTokens={state.outputTokens}
+        health={state.health}
+        runtimeConfig={state.runtimeConfig}
+        isBusy={state.isStreaming}
+        onSelectSession={(sessionId) => void loadSession(sessionId)}
+        onNewSession={() => void createAndSelectSession()}
+        onDeleteCurrent={() => void removeActiveSession()}
+        onDeleteSession={(sessionId) => removeSession(sessionId)}
+      />
+
+      <main className={styles.main}>
+        <LanguageSwitcher />
+
+        <Hero
+          showPrompts={state.messages.length === 0}
+          onPromptSelect={(prompt) => void sendMessage(prompt)}
+        />
+
+        {state.error ? <div className={styles.error}>{state.error}</div> : null}
+
+        <section className={styles.chatPane}>
+          <section className={styles.conversation}>
+            {state.messages.map((message, index) => (
+              <ChatMessage
+                key={`${message.role}-${index}`}
+                message={message}
+                isStreamingMessage={state.isStreaming && index === state.messages.length - 1}
+              />
+            ))}
+          </section>
+
+          <div className={styles.composer}>
+            <ChatInput
+              isStreaming={state.isStreaming}
+              isStopping={state.isStopping}
+              onSubmit={(content) => void sendMessage(content)}
+              onStop={() => void stopGeneration()}
+            />
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ToastProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppProvider>
+              <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+
+              <Route element={<PrivateRoute />}>
+                <Route path="/chat" element={<Shell />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
+
+              <Route path="/" element={<Navigate to="/chat" replace />} />
+            </Routes>
+            </AppProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ToastProvider>
+    </BrowserRouter>
+  );
+}

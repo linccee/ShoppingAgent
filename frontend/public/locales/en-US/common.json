@@ -1,0 +1,25 @@
+{
+  "loading": "Preparing interface...",
+  "booting": "Waking up Mirror Curation...",
+  "privateRouteLoading": "Loading...",
+  "languageSwitcher": {
+    "title": "Switch language"
+  },
+  "toast": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "close": "Close"
+  },
+  "confirmDialog": {
+    "eyebrow": "Confirm Deletion",
+    "cancel": "Cancel",
+    "deleting": "Deleting..."
+  },
+  "errors": {
+    "generic": "Something went wrong, please try again",
+    "networkError": "Network error, please check your connection",
+    "unauthorized": "Unauthorized, please log in again"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "loading": "로딩 중...",
+  "back": "채팅으로 돌아가기",
+  "title": "개인 설정",
+  "account": {
+    "title": "계정 정보",
+    "username": "사용자 이름",
+    "email": "이메일"
+  },
+  "preferences": {
+    "title": "환경 설정",
+    "language": {
+      "label": "인터페이스 언어",
+      "auto": "자동 (브라우저 따르기)",
+      "description": "자동을 선택하면 시스템 인터페이스 언어가 브라우저 설정에 따라 자동으로 전환됩니다."
+    },
+    "currency": "기본 통화",
+    "notification": "알림 활성화",
+    "save": "설정 저장",
+    "saving": "저장 중...",
+    "saveSuccess": "저장 성공",
+    "saveError": "저장 실패"
+  },
+  "logout": "로그아웃"
+}
