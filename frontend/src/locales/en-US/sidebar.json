@@ -42,7 +42,7 @@
     "delete": "Delete"
   },
   "confirmDelete": {
-    "title": "Delete \"{title}\"?",
+    "title": "Delete \"{{title}}\"?",
     "description": "This will permanently delete the database record, in-memory session cache, and the current session ID stored in your browser. This action cannot be undone.",
     "confirm": "Confirm Delete",
     "cancel": "Cancel",

@@ -28,6 +28,8 @@ describe('ChatTimeline', () => {
 
     expect(screen.getByText('已完成')).toBeInTheDocument();
     expect(screen.getByText('处理中')).toBeInTheDocument();
+    expect(screen.getByText('2 步')).toBeInTheDocument();
+    expect(screen.getByText('调用 search_products')).toBeInTheDocument();
   });
 
   it('shows an explicit expand and collapse control', async () => {

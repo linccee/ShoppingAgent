@@ -1,6 +1,11 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authApi, User } from '../api/auth';
 import { useLanguage } from './LanguageContext';
+import {
+  AUTH_SESSION_INVALIDATED_EVENT,
+  clearStoredAuthSession,
+  invalidateAuthSession,
+} from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -30,11 +35,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const parsedUser = JSON.parse(storedUser) as User;
         setUser(parsedUser);
       } catch {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
+        clearStoredAuthSession();
       }
+    } else if (storedToken || storedUser) {
+      clearStoredAuthSession();
     }
     setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const handleSessionInvalidated = () => {
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+    };
+
+    window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, handleSessionInvalidated);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT, handleSessionInvalidated);
+    };
   }, []);
 
   const { syncFromBackend } = useLanguage();
@@ -65,10 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+    invalidateAuthSession('logout');
     authApi.logout().catch(() => {
       // Ignore logout errors
     });

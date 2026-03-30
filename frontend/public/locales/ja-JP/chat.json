@@ -22,9 +22,9 @@
     "title": "軌跡再生",
     "collapse": "折りたたむ",
     "expand": "展開する",
-    "steps": "{count} ステップ",
+    "steps": "{{count}} ステップ",
     "toolCall": "ツール呼び出し",
-    "invoke": "{tool} を呼び出し",
+    "invoke": "{{tool}} を呼び出し",
     "completed": "完了",
     "processing": "処理中"
   },
