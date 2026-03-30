@@ -5,6 +5,7 @@ import type {
   SessionSummary,
   StopChatResponse,
 } from '../types';
+import { invalidateAuthSession } from '../utils/auth';
 
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -46,6 +47,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       detail = body.detail ?? body.message ?? detail;
     } catch {
       // Ignore non-JSON error payloads.
+    }
+    if (response.status === 401) {
+      invalidateAuthSession('unauthorized');
     }
     throw new ApiError(response.status, detail);
   }

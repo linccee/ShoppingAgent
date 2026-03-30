@@ -2,195 +2,154 @@
 
 > 智能多平台购物决策助手 — 连接 Google Shopping、Amazon 与 eBay，一轮对话完成比价、评论归纳与购买建议。
 
+![Sales Agent Demo](docs/img/main.png)
+
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116-green.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.1-green.svg)](https://langchain.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.15+-orange.svg)](https://www.mongodb.com/)
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 核心功能
+## 功能特点
 
-| 功能 | 说明 |
-|------|------|
-| **多平台搜索** | 并行搜索 Google Shopping、Amazon、eBay，返回真实商品数据 |
-| **评论洞察** | AI 归纳用户评论，提炼核心优缺点与情感倾向 |
-| **汇率换算** | 自动识别用户货币（CNY/USD/EUR），完成预算换算 |
-| **智能推荐** | 综合价格、评分、评论给出结构化购买建议 |
-| **会话记忆** | MongoDB 持久化记忆，跨重启保持上下文 |
+- **多平台搜索** — 搜索 Google Shopping、Amazon、eBay
+- **智能比价** — 实时获取各平台价格，支持多货币换算
+- **评论洞察** — AI 归纳用户评论，提炼优缺点与情感倾向
+- **购买推荐** — 综合价格、评分、评论给出结构化建议
+- **会话记忆** — MongoDB 持久化记忆，跨重启保持上下文
+- **多语言支持** — 中文、英文、日文、韩文
 
-## 当前状态
-
-当前受支持的运行入口已经切换为 `backend.app.main` 和新的 `frontend/` React 应用。
-
-- 后端：FastAPI + LangGraph + MongoDB
-- 前端：React 18 + TypeScript + Vite
-- 旧版 Streamlit 运行文件已下线
-
-## 系统架构
+## 工作流
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Client Layer                           │
-│            React Frontend / 任意 HTTP Client                │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-┌────────────────────────────▼────────────────────────────────┐
-│                     FastAPI Backend                          │
-│        /api/v1/chat/*  /api/v1/sessions  /api/v1/health      │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-┌────────────────────────────▼────────────────────────────────┐
-│                      Agent / Tool Layer                      │
-│                   LangGraph ReAct Agent                      │
-│            (MongoDBSaver 持久化 Checkpointer)                │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-┌────────────────────────────▼────────────────────────────────┐
-│                      Tool Layer                              │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌───────┐ │
-│  │ 搜索     │ │ 价格     │ │ 评论     │ │ 汇率    │ │ Tavily│ │
-│  │ search   │ │ prices   │ │ reviews  │ │ currency│ │ search│ │
-│  └──────────┘ └──────────┘ └──────────┘ └─────────┘ └───────┘ │
-│                      SerpAPI / Tavily API                    │
-└─────────────────────────────────────────────────────────────┘
+用户输入 → 搜索商品 → ┬→ 价格查询 ─┐
+                     ├→ 评论分析 ─┼→ 智能推荐 → 输出
+                     └→ 汇率换算 ─┘
 ```
-
-### 工作流
-
-```
-input → search → ┬→ price ─┐
-                ├→ review ─┼→ recommend → output
-                └→ currency─┘
-```
-
-- **input**: 接收用户购物需求
-- **search**: 串行调用 `search_products` 搜索候选商品
-- **price/review/currency**: 并行执行，分别获取价格、分析评论、换算汇率
-- **recommend**: 综合所有信息生成推荐报告
-- **output**: 结构化输出购买建议
 
 ## 快速开始
 
 ### 环境要求
 
 - Python 3.11+
+- Node.js 18+
 - MongoDB 4.15+ (本地或 Atlas)
-- API Keys (见下方)
 
-### 安装依赖
+### 1. 安装依赖
 
-后端依赖：
-
+后端：
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-前端依赖：
-
+前端：
 ```bash
-cd frontend
-npm install
+cd frontend && npm install
 ```
 
-### 配置环境变量
+### 2. 配置环境变量
 
-创建 `.env` 文件：
+创建 `backend/.env`：
 
 ```bash
-# 主模型 (优先使用新变量名，兼容旧变量)
+# LLM 配置
 LLM_API_KEY=your_api_key
 LLM_BASE_URL=your_api_base_url
 LLM_MODEL_ID=your_model_id
 
 # 搜索服务
-SERPAPI_API_KEY=your_serpapi_key      # https://serpapi.com/
-TAVILY_API_KEY=your_tavily_key        # https://tavily.com/
+SERPAPI_API_KEY=your_serpapi_key
+TAVILY_API_KEY=your_tavily_key
 
-# MongoDB (用于会话记忆持久化)
+# MongoDB
 MONGO_URI=mongodb://localhost:27017
-
-# 汇率 API (可选)
-EXCHANGE_RATE_API_KEY=your_exchange_rate_key
 ```
 
-### 启动
+前端 `frontend/.env`：
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+### 3. 启动
 
 后端：
-
 ```bash
-uvicorn backend.app.main:app --reload
+cd backend && uvicorn app.main:app --reload
 ```
 
 前端：
-
 ```bash
-cd frontend
-npm run dev
+cd frontend && npm run dev
 ```
 
-- 后端默认运行在 `http://127.0.0.1:8000`
-- 前端默认运行在 `http://127.0.0.1:5173`
-
-### API 概览
-
-- `POST /api/v1/chat/stream`: SSE 流式聊天
-- `POST /api/v1/chat/stop`: 停止生成
-- `POST /api/v1/sessions`: 创建会话
-- `GET /api/v1/sessions`: 列出会话
-- `GET /api/v1/sessions/{session_id}`: 获取会话详情
-- `DELETE /api/v1/sessions/{session_id}`: 删除会话
-- `GET /api/v1/health`: 健康检查
+访问 `http://localhost:5173` 即可使用。
 
 ## 项目结构
 
 ```
-1-agent/
 ├── backend/
-│   ├── app/
-│   │   ├── main.py         # FastAPI 入口
-│   │   ├── config.py       # 配置管理
-│   │   ├── api/routes/     # chat / session / health 路由
-│   │   ├── models/         # Pydantic 请求/响应模型
-│   │   └── services/       # AgentService / SessionService
-│   ├── agent/              # LangGraph agent 核心
-│   ├── tools/              # 搜索/价格/评论/汇率/Tavily 工具
-│   ├── utils/db.py         # MongoDB 会话与压缩状态
-│   └── requirements.txt
+│   ├── app/                 # FastAPI 应用
+│   │   ├── api/routes/      # API 路由
+│   │   ├── core/            # 核心功能 (JWT/安全)
+│   │   ├── models/          # 数据模型
+│   │   └── services/        # 业务服务
+│   ├── agent/                # LangGraph Agent 核心
+│   │   ├── agent_core.py    # Agent 工厂与流式执行
+│   │   ├── graph.py         # 状态图构建
+│   │   └── nodes.py          # 节点函数
+│   └── tools/                # 工具：search/price/review/currency
 ├── frontend/
-│   ├── src/                # React 前端源码
-│   ├── package.json
-│   └── vite.config.ts
-├── test/                   # Python 单元测试
-└── *.backup                # 迁移前备份文件
+│   ├── src/
+│   │   ├── pages/           # 页面组件
+│   │   ├── components/      # React 组件
+│   │   ├── context/         # React Context
+│   │   ├── i18n/            # 国际化配置
+│   │   └── services/        # API 服务
+│   └── package.json
+├── test/                     # pytest 测试
+└── docs/                     # 文档
 ```
 
-## 工具说明
+## 工具
 
-### search_products
-搜索候选商品，关键词必须为英文，返回多平台商品列表。
-
-### prices
-输入商品 SKU (Amazon ASIN / eBay product_id) 获取精确价格。
-
-### analyze_reviews
-分析商品评论，提取优缺点、情感评分与代表性评论。
-
-### currency_exchange
-多货币支持，自动识别 CNY/USD/EUR/JPY 等。
-
-### tavily_search / tavily_extract
-当用户询问最新产品、时效性信息时，通过 Tavily 从网络获取最新内容。
-
+| 工具 | 说明 |
+|------|------|
+| `search_products` | 多平台商品搜索 |
+| `prices` | 获取商品价格 |
+| `analyze_reviews` | 分析评论情感 |
+| `currency_exchange` | 多货币换算 |
+| `tavily_search` | 网络实时搜索 |
 
 ## 技术栈
 
 | 类别 | 技术 |
 |------|------|
-| API | FastAPI 0.116, Uvicorn |
-| 前端 | React 18 + TypeScript + Vite |
-| Agent | LangGraph 1.1, LangChain Core |
-| 记忆 | MongoDB + LangGraph Checkpointer |
-| 搜索 | SerpAPI, Tavily API |
+| 前端 | React 18 + TypeScript + Vite + TailwindCSS |
+| 后端 | FastAPI + Uvicorn |
+| Agent | LangGraph + LangChain |
+| 数据库 | MongoDB |
+| 搜索 | SerpAPI + Tavily API |
 | LLM | OpenAI 兼容 API (默认 Qwen) |
+| 国际化 | i18next (zh/en/ja/ko) |
+
+## 开发
+
+前端：
+```bash
+cd frontend
+npm run dev        # 开发服务器
+npm run build      # 生产构建
+npm run lint       # ESLint
+```
+
+后端：
+```bash
+cd backend
+uvicorn app.main:app --reload
+pytest test/ -v
+```
 
 ## License
 

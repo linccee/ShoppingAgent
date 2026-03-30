@@ -22,9 +22,9 @@
     "title": "추적 재생",
     "collapse": "접기",
     "expand": "펼치기",
-    "steps": "{count} 단계",
+    "steps": "{{count}} 단계",
     "toolCall": "도구 호출",
-    "invoke": "{tool} 호출 중",
+    "invoke": "{{tool}} 호출 중",
     "completed": "완료",
     "processing": "처리 중"
   },

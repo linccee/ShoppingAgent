@@ -22,9 +22,9 @@
     "title": "Trace Playback",
     "collapse": "Collapse",
     "expand": "Expand",
-    "steps": "{count} steps",
+    "steps": "{{count}} steps",
     "toolCall": "Tool Call",
-    "invoke": "Calling {tool}",
+    "invoke": "Calling {{tool}}",
     "completed": "Completed",
     "processing": "Processing"
   },

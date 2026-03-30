@@ -1,6 +1,7 @@
 import type { ChatEvent, ChatStreamRequest, RawChatEvent, ToolStep } from '../types';
 import { getApiBaseUrl } from './api';
 import { logger } from '../utils/logger';
+import { invalidateAuthSession } from '../utils/auth';
 
 function parseFrame(frame: string, onEvent: (event: ChatEvent) => void): void {
   const dataLines = frame
@@ -98,6 +99,9 @@ export async function* streamChat(request: ChatStreamRequest): AsyncGenerator<Ch
   if (!response.ok) {
     const detail = await response.text();
     logger.error('SSE', `Chat stream failed: ${response.status}`, detail);
+    if (response.status === 401) {
+      invalidateAuthSession('unauthorized');
+    }
     throw new Error(detail || `Unable to stream chat: ${response.status}`);
   }
 

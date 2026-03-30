@@ -22,9 +22,9 @@
     "title": "轨迹回放",
     "collapse": "收起",
     "expand": "展开",
-    "steps": "{count} 步",
+    "steps": "{{count}} 步",
     "toolCall": "工具调用",
-    "invoke": "调用 {tool}",
+    "invoke": "调用 {{tool}}",
     "completed": "已完成",
     "processing": "处理中"
   },
