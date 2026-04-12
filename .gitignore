@@ -37,6 +37,8 @@ logs/
 .claude/
 .jbeval/
 .codex/
+.agent/
+.github/
 
 # tests
 test/
