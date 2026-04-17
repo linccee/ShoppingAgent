@@ -3,6 +3,10 @@ import { getApiBaseUrl } from './api';
 import { logger } from '../utils/logger';
 import { invalidateAuthSession } from '../utils/auth';
 
+interface StreamChatOptions {
+  signal?: AbortSignal;
+}
+
 function parseFrame(frame: string, onEvent: (event: ChatEvent) => void): void {
   const dataLines = frame
     .split('\n')
@@ -79,7 +83,10 @@ function normalizeChatEvent(payload: RawChatEvent): ChatEvent {
   }
 }
 
-export async function* streamChat(request: ChatStreamRequest): AsyncGenerator<ChatEvent> {
+export async function* streamChat(
+  request: ChatStreamRequest,
+  options?: StreamChatOptions,
+): AsyncGenerator<ChatEvent> {
   logger.info('SSE', `Starting chat stream for session ${request.session_id}`);
 
   const token = window.localStorage.getItem('access_token');
@@ -94,6 +101,7 @@ export async function* streamChat(request: ChatStreamRequest): AsyncGenerator<Ch
     method: 'POST',
     headers,
     body: JSON.stringify(request),
+    signal: options?.signal,
   });
 
   if (!response.ok) {

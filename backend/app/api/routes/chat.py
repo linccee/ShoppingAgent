@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Generator
+from typing import Annotated, AsyncGenerator
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import StreamingResponse
 
 from backend.app.api.dependencies import get_agent_service
@@ -27,22 +27,35 @@ def _encode_sse(event_type: str, data: object, session_id: str) -> str:
 
 
 @router.post("/stream")
-def stream_chat(
-    request: ChatStreamRequest,
+async def stream_chat(
+    chat_request: ChatStreamRequest,
+    http_request: Request,
     current_user: Annotated[dict, Depends(get_current_user)],
     agent_service: AgentService = Depends(get_agent_service),
 ) -> StreamingResponse:
     """Stream chat events as SSE (requires authentication)."""
-    chat_logger.info(f"[CHAT] User {current_user.get('username')} starting chat stream, session_id={request.session_id}")
+    chat_logger.info(
+        f"[CHAT] User {current_user.get('username')} starting chat stream, session_id={chat_request.session_id}"
+    )
 
-    def event_generator() -> Generator[str, None, None]:
-        current_session_id = request.session_id or ""
+    async def event_generator() -> AsyncGenerator[str, None]:
+        current_session_id = chat_request.session_id or ""
+        stream = agent_service.stream(
+            chat_request.message,
+            chat_request.session_id,
+            user_id=current_user["id"],
+        )
+
         try:
-            for event_type, data in agent_service.stream(
-                request.message,
-                request.session_id,
-                user_id=current_user["id"],
-            ):
+            for event_type, data in stream:
+                if await http_request.is_disconnected():
+                    if current_session_id:
+                        chat_logger.info(
+                            f"[CHAT] Client disconnected, requesting stop for session {current_session_id}"
+                        )
+                        agent_service.stop(current_session_id)
+                    break
+
                 if event_type == "session":
                     current_session_id = data["session_id"]
                     chat_logger.info(f"[CHAT] Session established: {current_session_id}")
@@ -50,6 +63,12 @@ def stream_chat(
         except Exception as e:
             chat_logger.error(f"[CHAT] Stream error: {e}")
             yield _encode_sse("error", str(e), current_session_id)
+        finally:
+            if current_session_id and await http_request.is_disconnected():
+                chat_logger.info(
+                    f"[CHAT] Stream cleanup on disconnect for session {current_session_id}"
+                )
+                agent_service.stop(current_session_id)
 
     return StreamingResponse(
         event_generator(),

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { useAppDispatch, useAppState } from '../context/useAppStore';
 import { listSessions, stopChat } from '../services/api';
@@ -11,6 +11,7 @@ const ACTIVE_SESSION_KEY = 'mirror-curation.active-session-id';
 export function useChat() {
   const state = useAppState();
   const dispatch = useAppDispatch();
+  const streamAbortControllerRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -21,11 +22,15 @@ export function useChat() {
 
       logger.info('Chat', `Sending message: ${trimmed.substring(0, 50)}...`);
       dispatch({ type: 'stream/start', payload: { content: trimmed } });
+      const controller = new AbortController();
+      streamAbortControllerRef.current = controller;
 
       try {
         for await (const event of streamChat({
           message: trimmed,
           session_id: state.activeSessionId,
+        }, {
+          signal: controller.signal,
         })) {
           switch (event.type) {
             case 'session':
@@ -66,13 +71,19 @@ export function useChat() {
           }
         }
       } catch (error) {
-        logger.error('Chat', 'Send message failed', error instanceof Error ? error.message : 'Unknown error');
-        dispatch({
-          type: 'stream/error',
-          payload: error instanceof Error ? error.message : '消息发送失败',
-        });
-        Toast.error('消息发送失败', 5000);
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          logger.info('Chat', 'Stream aborted by client');
+        } else {
+          logger.error('Chat', 'Send message failed', error instanceof Error ? error.message : 'Unknown error');
+          dispatch({
+            type: 'stream/error',
+            payload: error instanceof Error ? error.message : '消息发送失败',
+          });
+          Toast.error('消息发送失败', 5000);
+        }
       } finally {
+        streamAbortControllerRef.current = null;
+
         try {
           const sessions = await listSessions();
           dispatch({ type: 'sessions/set', payload: sessions });
@@ -93,13 +104,12 @@ export function useChat() {
 
     logger.info('Chat', `Stopping generation for session ${state.activeSessionId}`);
     dispatch({ type: 'stream/stopping' });
+    streamAbortControllerRef.current?.abort();
 
     try {
       const response = await stopChat(state.activeSessionId);
       if (!response.accepted) {
         logger.warn('Chat', 'Stop request not accepted');
-        dispatch({ type: 'stream/error', payload: '当前没有可停止的生成任务' });
-        dispatch({ type: 'stream/finish' });
         Toast.warning('当前没有可停止的生成任务', 4000);
       }
     } catch (error) {
@@ -108,7 +118,6 @@ export function useChat() {
         type: 'stream/error',
         payload: error instanceof Error ? error.message : '停止生成失败',
       });
-      dispatch({ type: 'stream/finish' });
       Toast.error('停止生成失败', 5000);
     }
   }, [dispatch, state.activeSessionId, state.isStopping, state.isStreaming]);
