@@ -39,6 +39,7 @@ logs/
 .codex/
 .agent/
 .github/
+.gemini/
 .planning/
 
 # tests
