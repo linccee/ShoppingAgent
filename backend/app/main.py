@@ -58,7 +58,6 @@ app.include_router(chat_router, prefix="/api/v1")
 
 
 def main() -> None:
-    """Run the FastAPI app so this file can be executed directly."""
     import uvicorn
 
     uvicorn.run(
