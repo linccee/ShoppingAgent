@@ -52,3 +52,4 @@ frontend/dist/
 # local tiktoken cache
 backend/tiktoken-cache/*
 !backend/tiktoken-cache/.gitkeep
+interview_prep.md
