@@ -11,6 +11,7 @@ interface HeroProps {
 
 export function Hero({ showPrompts, onPromptSelect }: HeroProps) {
   const { t } = useTranslation('chat');
+  const examplePrompts = t('hero.examplePrompts', { returnObjects: true }) as string[];
 
   return (
     <section className={styles.wrap}>
@@ -53,7 +54,7 @@ export function Hero({ showPrompts, onPromptSelect }: HeroProps) {
             <p>{t('hero.promptsText')}</p>
           </div>
           <div className={styles.promptGrid}>
-            {t('hero.examplePrompts', { returnObjects: true }).map((prompt: string) => (
+            {examplePrompts.map((prompt) => (
               <Button key={prompt} variant="secondary" onClick={() => onPromptSelect(prompt)}>
                 {prompt}
               </Button>

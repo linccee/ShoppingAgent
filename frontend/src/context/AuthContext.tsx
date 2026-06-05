@@ -6,6 +6,7 @@ import {
   clearStoredAuthSession,
   invalidateAuthSession,
 } from '../utils/auth';
+import type { LanguagePreference } from '../i18n/constants';
 
 interface AuthContextType {
   user: User | null;
@@ -18,6 +19,10 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function isLanguagePreference(value: string | undefined): value is LanguagePreference {
+  return value === 'auto' || value === 'zh-CN' || value === 'en-US' || value === 'ja-JP' || value === 'ko-KR';
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -57,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const { syncFromBackend } = useLanguage();
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const login = async (username: string, password: string) => {
     const response = await authApi.login({ username, password });
@@ -69,9 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(access_token);
     setUser(userData);
 
-    // Sync language preference from backend
-    syncFromBackend(userData.preferences?.language_preference);
-    setIsLoaded(true);
+    const backendPreference = userData.preferences?.language_preference;
+    syncFromBackend(isLanguagePreference(backendPreference) ? backendPreference : null);
   };
 
   const register = async (username: string, email: string, password: string) => {

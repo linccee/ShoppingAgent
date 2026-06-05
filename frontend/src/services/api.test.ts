@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AUTH_SESSION_INVALIDATED_EVENT } from '../utils/auth';
-import { ApiError, listSessions } from './api';
+import { listSessions } from './api';
 
 function createLocalStorageMock(): Storage {
   const store = new Map<string, string>();
@@ -60,7 +60,7 @@ describe('services/api unauthorized handling', () => {
       ),
     );
 
-    await expect(listSessions()).rejects.toMatchObject<ApiError>({
+    await expect(listSessions()).rejects.toMatchObject({
       status: 401,
       message: 'Token expired',
     });

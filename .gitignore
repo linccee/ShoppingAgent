@@ -43,7 +43,7 @@ logs/
 .planning/
 
 # tests
-test/
+/test/
 
 # frontend
 frontend/node_modules/
