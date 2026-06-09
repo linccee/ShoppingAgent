@@ -1,8 +1,6 @@
 from langchain.tools import tool
 import json
-import asyncio
 import re
-from typing import Optional
 
 from backend.app.config import Config
 from backend.app.utils.logging_config import tools_logger
@@ -153,42 +151,6 @@ def search_products(query: str) -> str:
         "results": structured_results
     }, ensure_ascii=False)
 
-def _extract_price_from_serp(item: dict) -> str:
-    """从 SerpApi 结果中提取价格"""
-    # 优先使用 extracted_price（数值）
-    extracted_price = item.get("extracted_price")
-    if extracted_price:
-        return f"${extracted_price}"
-
-    # 尝试 price 字段
-    price = item.get("price", "")
-    if price:
-        return price
-
-    return ""
-
-
-def _extract_rating_from_serp(item: dict) -> str:
-    """从 SerpApi 结果中提取评分"""
-    rating = item.get("rating")
-    if rating:
-        try:
-            rating_val = float(rating)
-            if 0 <= rating_val <= 5:
-                return f"{rating_val}/5"
-        except (ValueError, TypeError):
-            pass
-    return ""
-
-
-def _extract_reviews_from_serp(item: dict) -> str:
-    """从 SerpApi 结果中提取评价数量"""
-    reviews = item.get("reviews")
-    if reviews:
-        return f"{reviews}条评价"
-    return ""
-
-
 def _is_valid_product_url(url: str, title: str = "") -> bool:
     """检查 URL 是否为有效的商品详情页"""
     if not url:
@@ -227,119 +189,3 @@ def _is_valid_product_url(url: str, title: str = "") -> bool:
             return False
 
     return True
-
-
-def _detect_platform(url: str) -> str:
-    """从URL检测电商平台"""
-    if not url:
-        return ""
-
-    url_lower = url.lower()
-
-    if "amazon." in url_lower:
-        return "Amazon"
-    elif "ebay." in url_lower:
-        return "eBay"
-    elif "walmart." in url_lower:
-        return "Walmart"
-    elif "target." in url_lower:
-        return "Target"
-    elif "bestbuy." in url_lower:
-        return "BestBuy"
-    elif "newegg." in url_lower:
-        return "Newegg"
-    elif "alibaba." in url_lower or "aliexpress." in url_lower:
-        return "AliExpress"
-
-    return "Google Shopping"
-
-
-async def extract_product_details(url: str) -> dict:
-    """
-    使用 SerpApi Extract API 抓取商品详情页获取真实价格。
-
-    参数：
-        url: 商品详情页 URL
-
-    返回：
-        包含价格、评分、评价数量的字典
-    """
-    import serpapi
-
-    try:
-        # 使用 SerpApi 的提取功能
-        params = {
-            "api_key": Config.SERPAPI_KEY,
-            "engine": "extract",
-            "url": url,
-            "product_id": _extract_product_id(url)
-        }
-
-        search_result = serpapi.search(**params)
-
-        # 尝试从结果中提取信息
-        extracted = search_result.get("properties", {})
-
-        if not extracted:
-            # 如果提取失败，返回空
-            return {}
-
-        return {
-            "price": extracted.get("price", ""),
-            "rating": extracted.get("rating", ""),
-            "reviews": extracted.get("reviews", "")
-        }
-    except Exception:
-        return {}
-
-
-def _extract_product_id(url: str) -> Optional[str]:
-    """从 URL 中提取产品 ID"""
-    url_lower = url.lower()
-
-    # Amazon: /dp/ASIN 或 /gp/product/ASIN
-    match = re.search(r'/dp/([A-Z0-9]{10})', url_lower)
-    if match:
-        return match.group(1)
-
-    match = re.search(r'/gp/product/([A-Z0-9]{10})', url_lower)
-    if match:
-        return match.group(1)
-
-    # eBay: /itm/ITEM_ID
-    match = re.search(r'/itm/(\d+)', url_lower)
-    if match:
-        return match.group(1)
-
-    return None
-
-
-async def extract_prices_parallel(urls: list, max_concurrent: int = 3) -> list:
-    """
-    并行提取多个商品详情页的价格信息。
-
-    参数：
-        urls: 商品 URL 列表
-        max_concurrent: 最大并发数，默认 3
-
-    返回：
-        每个 URL 对应的提取结果列表
-    """
-    semaphore = asyncio.Semaphore(max_concurrent)
-
-    async def extract_one(url: str):
-        async with semaphore:
-            return await extract_product_details(url)
-
-    tasks = [extract_one(url) for url in urls]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    # 处理异常结果
-    processed_results = []
-    for r in results:
-        if isinstance(r, Exception):
-            processed_results.append({})
-        else:
-            processed_results.append(r)
-
-    return processed_results

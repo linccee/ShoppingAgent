@@ -1,9 +1,8 @@
 """StateGraph node functions for the shopping workflow."""
 import json
 import re
-from typing import Any
 
-from backend.agent.state import SharedState, SearchResult, PriceInfo, ReviewAnalysis, Recommendation
+from backend.agent.state import SharedState, PriceInfo, ReviewAnalysis, Recommendation
 
 
 # ---- Node Functions ----

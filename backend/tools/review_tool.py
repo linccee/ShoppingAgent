@@ -1,4 +1,3 @@
-from langchain_openai import ChatOpenAI
 from backend.app.config import Config
 from langchain.tools import tool
 import serpapi

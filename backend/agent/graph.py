@@ -1,7 +1,7 @@
 """StateGraph builder for multi-agent workflows."""
 from typing import Callable
 
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from backend.agent.state import SharedState
