@@ -1,4 +1,5 @@
 """Agent Registry - Singleton pattern for managing agent configurations."""
+import os
 from typing import TypeVar, Callable
 
 from backend.agent.config_types import (
@@ -188,6 +189,7 @@ class AgentRegistry:
 
     def create_llm(self, agent_type: AgentType) -> "ChatOpenAI":
         """根据配置创建 LLM 实例"""
+        os.environ.setdefault("USE_TORCH", "0")
         from langchain_openai import ChatOpenAI
 
         llm_config = self.get_llm_config(agent_type)
