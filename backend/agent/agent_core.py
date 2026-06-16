@@ -1,10 +1,15 @@
 import queue
 import threading
 import logging
+import os
 import sys
 from datetime import date
 from pathlib import Path
 from typing import Generator
+
+# OpenAI chat models do not need Transformers' torch backend. Some Windows
+# environments have a broken torch DLL, which can otherwise fail app startup.
+os.environ.setdefault("USE_TORCH", "0")
 
 from backend.app.utils.logging_config import agent_logger as _log
 

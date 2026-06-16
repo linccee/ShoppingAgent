@@ -11,6 +11,7 @@ import queue
 import threading
 import time
 import uuid
+import os
 from typing import Optional
 
 from langchain_core.messages import BaseMessage, messages_from_dict, messages_to_dict
@@ -43,6 +44,7 @@ def _get_lite_llm():
     """获取轻量 LLM 用于摘要生成"""
     global _lite_llm
     if _lite_llm is None:
+        os.environ.setdefault("USE_TORCH", "0")
         from langchain_openai import ChatOpenAI
 
         _lite_llm = ChatOpenAI(
