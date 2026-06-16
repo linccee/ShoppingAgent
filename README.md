@@ -21,7 +21,11 @@
 - **会话记忆** — MongoDB 持久化记忆，跨重启保持上下文
 - **多语言支持** — 中文、英文、日文、韩文
 
-## 工作流
+## Agent 架构
+
+项目使用 LangGraph 预置的 **ReAct Agent**（`create_react_agent`）：由 LLM 根据系统提示词自主决定何时调用哪个工具，而非固定节点图编排。
+
+典型购物流程如下（由 Agent 动态决策，非硬编码顺序）：
 
 ```
 用户输入 → 搜索商品 → ┬→ 价格查询 ─┐
@@ -95,10 +99,12 @@ cd frontend && npm run dev
 │   │   ├── core/            # 核心功能 (JWT/安全)
 │   │   ├── models/          # 数据模型
 │   │   └── services/        # 业务服务
-│   ├── agent/                # LangGraph Agent 核心
-│   │   ├── agent_core.py    # Agent 工厂与流式执行
-│   │   ├── graph.py         # 状态图构建
-│   │   └── nodes.py          # 节点函数
+│   ├── agent/                # LangGraph ReAct Agent 核心
+│   │   ├── agent_core.py    # Agent 创建、流式执行、记忆 checkpointer
+│   │   ├── factory.py       # 基于 Registry 的 Agent 工厂
+│   │   ├── registry.py      # Agent 类型与工具注册
+│   │   ├── memory_manager.py           # 记忆摘要压缩与序列校验
+│   │   └── compressed_checkpointer.py  # MongoDB 双轨持久化 checkpointer
 │   └── tools/                # 工具：search/price/review/currency
 ├── frontend/
 │   ├── src/
